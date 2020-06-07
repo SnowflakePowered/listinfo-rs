@@ -10,13 +10,12 @@ use nom::{
 
 use std::collections::BTreeMap;
 use crate::elements::*;
+use crate::error::ListInfoError;
 
 enum ParsedValue<'a> {
     Subentry(&'a str),
     Value(&'a str),
 }
-
-
 
 fn open_entry(input: &str) -> IResult<&str, char> {
     let (input, _) = multispace0(input)?;
@@ -80,8 +79,9 @@ fn parse_sub_entry_data<'a>(input: &'a str) -> IResult<&'a str, SubEntryData<'a>
     Ok((input, SubEntryData { keys: map }))
 }
 
-pub fn parse_document<'a>(input: &'a str) -> IResult<&'a str, DatDocument<'a>> {
-    let (input, fragments) = complete(many1(parse_fragment))(input)?;
+/// Parse multiple ListInfo entries as a document.
+pub fn parse_document<'a>(input: &'a str) -> std::result::Result<DatDocument<'a>, ListInfoError> {
+    let (_, fragments) = complete(many1(parse_fragment_internal))(input)?;
     let mut document: BTreeMap<&'a str, Vec<InfoEntry<'a>>> = BTreeMap::new();
     for (key, entry) in fragments {
         if let Some(existing) = document.get_mut(key) {
@@ -90,10 +90,16 @@ pub fn parse_document<'a>(input: &'a str) -> IResult<&'a str, DatDocument<'a>> {
             document.insert(key, vec![entry]);
         }
     }
-    Ok((input, DatDocument { document }))
+    Ok(DatDocument { document })
 }
 
-pub fn parse_fragment<'a, 'b>(input: &'a str) -> IResult<&'a str, (&'a str, InfoEntry<'a>)> {
+/// Parse a single ListInfo entry, returning it's type and the entry.
+pub fn parse_fragment<'a, 'b>(input: &'a str) -> std::result::Result<(&'a str, InfoEntry<'a>), ListInfoError> {
+    let (_, fragment) = parse_fragment_internal(input)?;
+    Ok(fragment)
+}
+
+fn parse_fragment_internal<'a, 'b>(input: &'a str) -> IResult<&'a str, (&'a str, InfoEntry<'a>)> {
     let (input, _) = multispace0(input)?;
     let (input, entry_key) = string_key(input)?;
     let (input, _) = open_entry(input)?;

@@ -1,6 +1,7 @@
 mod elements;
-pub mod parse;
+mod error;
 
+pub mod parse;
 pub use elements::*;
 
 #[cfg(test)]
