@@ -1,14 +1,26 @@
 use std::collections::BTreeMap;
 use std::iter;
 
+#[derive(Debug)]
 pub struct DatDocument<'a> {
-    pub games: Vec<InfoEntry<'a>>,
-    pub resources: Vec<InfoEntry<'a>>,
+    pub(crate) document: BTreeMap<&'a str, Vec<InfoEntry<'a>>>,
+}
+
+impl<'a> DatDocument<'a> {
+    pub fn get_entries(&self, key: &'a str) -> Option<impl Iterator<Item = &InfoEntry<'a>>> {
+        self.document.get(key).map(|f| f.iter())
+    }
 }
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct SubEntryData<'a> {
     pub(crate) keys: BTreeMap<&'a str, &'a str>,
+}
+
+impl <'a> SubEntryData<'a> {
+    pub fn get(&'a self, key: &str) -> Option<&'a str> {
+        self.keys.get(key).map(|&f| f)
+    }
 }
 
 #[derive(Debug, Clone, Eq, PartialEq)]
@@ -25,18 +37,10 @@ pub enum InfoNode<'a> {
 #[derive(Debug)]
 pub struct InfoEntry<'a> {
     keys: BTreeMap<&'a str, InfoNode<'a>>,
-    // roms: Vec<RomEntry<'a>>,
-    // disks: Vec<RomEntry<'a>>,
-    // samples: Vec<&'a str>,
 }
 
 impl<'a> InfoEntry<'a> {
-    pub(crate) fn new(
-        keys: BTreeMap<&'a str, InfoNode<'a>>,
-        // roms: Vec<RomEntry<'a>>,
-        // disks: Vec<RomEntry<'a>>,
-        // samples: Vec<&'a str>,
-    ) -> Self {
+    pub(crate) fn new(keys: BTreeMap<&'a str, InfoNode<'a>>) -> Self {
         InfoEntry { keys }
     }
 

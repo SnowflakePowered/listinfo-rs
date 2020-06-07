@@ -1,28 +1,22 @@
 use nom::{
     branch::alt,
-    bytes::complete::is_not,
-    bytes::complete::take_till1,
-    bytes::complete::{tag, take_while_m_n},
-    character::complete::char,
-    character::complete::multispace0,
+    bytes::complete::{is_not, take_till1},
+    character::complete::{char, multispace0},
     combinator::complete,
-    combinator::map_res,
-    multi::many0,
-    multi::many1,
+    multi::{many0, many1},
     sequence::delimited,
-    sequence::pair,
-    sequence::tuple,
     IResult,
 };
+
+use std::collections::BTreeMap;
+use crate::elements::*;
 
 enum ParsedValue<'a> {
     Subentry(&'a str),
     Value(&'a str),
 }
 
-use std::collections::BTreeMap;
 
-use crate::elements::*;
 
 fn open_entry(input: &str) -> IResult<&str, char> {
     let (input, _) = multispace0(input)?;
@@ -54,7 +48,7 @@ fn string_key(input: &str) -> IResult<&str, &str> {
     Ok((input, key))
 }
 
-fn parse_string_key(input: &str) -> IResult<&str, (&str, ParsedValue)> {
+fn parse_string_value(input: &str) -> IResult<&str, (&str, ParsedValue)> {
     let (input, _) = multispace0(input)?;
     let (input, key) = string_key(input)?;
     let (input, _) = char(' ')(input)?;
@@ -72,28 +66,41 @@ fn parse_sub_entry(input: &str) -> IResult<&str, (&str, ParsedValue)> {
 
 fn parse_sub_entry_data<'a>(input: &'a str) -> IResult<&'a str, SubEntryData<'a>> {
     let (input, _) = multispace0(input)?;
-    let (input, keys) = complete(many1(parse_string_key))(input)?;
+    let (input, keys) = complete(many1(parse_string_value))(input)?;
 
     let mut map = BTreeMap::new();
     for (key, value) in keys {
         match value {
-            ParsedValue::Value(value) => { map.insert(key, value); },
-            _ => unreachable!()
+            ParsedValue::Value(value) => {
+                map.insert(key, value);
+            }
+            _ => unreachable!(),
         }
     }
     Ok((input, SubEntryData { keys: map }))
 }
 
-pub fn parse_fragment<'a, 'b>(
-    input: &'a str,
-) -> IResult<&'a str, InfoEntry<'a>> {
+pub fn parse_document<'a>(input: &'a str) -> IResult<&'a str, DatDocument<'a>> {
+    let (input, fragments) = complete(many1(parse_fragment))(input)?;
+    let mut document: BTreeMap<&'a str, Vec<InfoEntry<'a>>> = BTreeMap::new();
+    for (key, entry) in fragments {
+        if let Some(existing) = document.get_mut(key) {
+            existing.push(entry);
+        } else {
+            document.insert(key, vec![entry]);
+        }
+    }
+    Ok((input, DatDocument { document }))
+}
+
+pub fn parse_fragment<'a, 'b>(input: &'a str) -> IResult<&'a str, (&'a str, InfoEntry<'a>)> {
     let (input, _) = multispace0(input)?;
-    let (input, _) = string_key(input)?;
+    let (input, entry_key) = string_key(input)?;
     let (input, _) = open_entry(input)?;
 
     let mut map = BTreeMap::new();
 
-    let (input, keys) = many0(alt((parse_sub_entry, parse_string_key)))(input)?;
+    let (input, keys) = many0(alt((parse_sub_entry, parse_string_value)))(input)?;
     for (key, value) in keys {
         match value {
             ParsedValue::Subentry(value) => {
@@ -101,7 +108,10 @@ pub fn parse_fragment<'a, 'b>(
                     if let Some(node) = map.remove(key) {
                         match node {
                             InfoNode::Unique(prev) => {
-                                map.insert(key, InfoNode::Multiple(vec![prev, EntryData::Node(subentry)]));
+                                map.insert(
+                                    key,
+                                    InfoNode::Multiple(vec![prev, EntryData::Node(subentry)]),
+                                );
                             }
                             InfoNode::Multiple(mut prevs) => {
                                 prevs.push(EntryData::Node(subentry));
@@ -112,12 +122,15 @@ pub fn parse_fragment<'a, 'b>(
                         map.insert(key, InfoNode::Unique(EntryData::Node(subentry)));
                     }
                 }
-            },
+            }
             ParsedValue::Value(value) => {
                 if let Some(node) = map.remove(key) {
                     match node {
                         InfoNode::Unique(prev) => {
-                            map.insert(key, InfoNode::Multiple(vec![prev, EntryData::Value(value)]));
+                            map.insert(
+                                key,
+                                InfoNode::Multiple(vec![prev, EntryData::Value(value)]),
+                            );
                         }
                         InfoNode::Multiple(mut prevs) => {
                             prevs.push(EntryData::Value(value));
@@ -131,5 +144,5 @@ pub fn parse_fragment<'a, 'b>(
         }
     }
     let (input, _) = close_entry(input)?;
-    Ok((input, InfoEntry::new(map)))
+    Ok((input, (entry_key, InfoEntry::new(map))))
 }
