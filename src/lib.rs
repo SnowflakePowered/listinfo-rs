@@ -12,6 +12,8 @@ mod tests;
 
 /// ListInfo parsing functions.
 pub mod parse;
+/// Serde `Deserializer` module.
+pub mod de;
 
 pub use error::*;
 pub use elements::*;
