@@ -21,13 +21,13 @@ pub struct SubEntry<'a> {
 }
 
 impl<'a> SubEntry<'a> {
-    /// Retrieves the value of an item data value in the sub-entry
+    /// Retrieves the value of an item data value in the sub-entry.
     pub fn get(&'a self, key: &str) -> Option<&'a str> {
         self.keys.get(key).map(|&f| f)
     }
 }
 
-/// Represents an item data value of an entry
+/// Represents an item data value of an entry.
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub enum EntryData<'a> {
     /// A scalar string entry
@@ -35,7 +35,7 @@ pub enum EntryData<'a> {
     /// A sub-entry (such as `rom`, for example)
     SubEntry(SubEntry<'a>),
 }
-/// Represents one node in an ListInfo entry
+/// Represents one node in an ListInfo entry.
 ///
 /// Note: The split between `Unique` and `Many` is mostly for
 /// performance reasons to avoid unnescessary allocations.
@@ -77,7 +77,7 @@ impl<'a> EntryNode<'a> {
     }
 }
 
-/// Represents a single ListInfo entry fragment
+/// Represents a single ListInfo entry fragment.
 #[derive(Debug)]
 pub struct EntryFragment<'a> {
     keys: BTreeMap<&'a str, EntryNode<'a>>,
@@ -89,12 +89,12 @@ impl<'a> EntryFragment<'a> {
         EntryFragment { keys }
     }
 
-    /// Gets the entry node with the given key if it exists
+    /// Gets the entry node with the given key if it exists.
     pub fn entry(&'a self, key: &str) -> Option<&'a EntryNode<'a>> {
         self.keys.get(key)
     }
 
-    /// Gets the entry node with the given key if it exists
+    /// Gets the entry node with the given key if it exists.
     ///
     /// This is shorthand for `fragment.entry("key").map(|f| f.unique())`
     pub fn unique(&'a self, key: &str) -> Option<&'a EntryData> {

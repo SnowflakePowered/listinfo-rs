@@ -7,9 +7,12 @@ extern crate std as alloc;
 
 mod elements;
 mod error;
-
 #[cfg(test)]
 mod tests;
 
+/// ListInfo parsing functions.
 pub mod parse;
+
+pub use error::*;
 pub use elements::*;
+
