@@ -10,6 +10,7 @@ keywords = ["clrmamepro", "mame", "dat", "parse"]
 [features]
 default = ["std"]
 std = []
+deserialize = ["serde"]
 
 [dependencies]
 nom = { version = "6.0.0-alpha1", default-features = false, features = ["alloc"] }

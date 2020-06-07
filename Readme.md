@@ -2,6 +2,7 @@
 
 A library to parse MAME ListInfo format DAT files. 
 
+
 ## `no_std`
 listinfo-rs supports `no_std`, but requires `alloc`.
 
