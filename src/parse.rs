@@ -8,7 +8,11 @@ use nom::{
     IResult,
 };
 
-use std::collections::BTreeMap;
+use alloc::collections::BTreeMap;
+use alloc::vec::Vec;
+use alloc::vec;
+use core::result::Result;
+
 use crate::elements::*;
 use crate::error::Error;
 
@@ -80,7 +84,7 @@ fn parse_sub_entry_data<'a>(input: &'a str) -> IResult<&'a str, SubEntry<'a>> {
 }
 
 /// Parse multiple ListInfo entries as a document.
-pub fn parse_document<'a>(input: &'a str) -> std::result::Result<DatDocument<'a>, Error> {
+pub fn parse_document<'a>(input: &'a str) -> Result<DatDocument<'a>, Error> {
     let (_, fragments) = complete(many1(parse_fragment_internal))(input)?;
     let mut document: BTreeMap<&'a str, Vec<EntryFragment<'a>>> = BTreeMap::new();
     for (key, entry) in fragments {
@@ -94,7 +98,7 @@ pub fn parse_document<'a>(input: &'a str) -> std::result::Result<DatDocument<'a>
 }
 
 /// Parse a single ListInfo entry, returning it's type and the entry.
-pub fn parse_fragment<'a, 'b>(input: &'a str) -> std::result::Result<(&'a str, EntryFragment<'a>), Error> {
+pub fn parse_fragment<'a, 'b>(input: &'a str) -> Result<(&'a str, EntryFragment<'a>), Error> {
     let (_, fragment) = parse_fragment_internal(input)?;
     Ok(fragment)
 }

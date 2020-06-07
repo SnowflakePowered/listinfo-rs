@@ -7,5 +7,10 @@ license = "MIT"
 keywords = ["clrmamepro", "mame", "dat", "parse"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[features]
+default = ["std"]
+std = []
+
 [dependencies]
+nom = { version = "6.0.0-alpha1", default-features = false, features = ["alloc"] }
 nom = "6.0.0-alpha1"

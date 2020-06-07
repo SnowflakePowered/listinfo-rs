@@ -1,5 +1,5 @@
-use std::collections::BTreeMap;
-use std::iter;
+use alloc::collections::BTreeMap;
+use alloc::vec::Vec;
 
 /// The contents of a ListInfo DAT file.
 #[derive(Debug)]
@@ -9,7 +9,7 @@ pub struct DatDocument<'a> {
 
 impl<'a> DatDocument<'a> {
     /// Get DAT entries with the given key as an iterator
-    pub fn get_entries(&self, key: &'a str) -> Option<impl Iterator<Item = &EntryFragment<'a>>> {
+    pub fn entry(&self, key: &'a str) -> Option<impl Iterator<Item = &EntryFragment<'a>>> {
         self.document.get(key).map(|f| f.iter())
     }
 }
@@ -50,6 +50,34 @@ pub enum EntryNode<'a> {
     Many(Vec<EntryData<'a>>),
 }
 
+impl <'a> EntryNode<'a> {
+
+    /// Gets the values with the given key.
+    /// 
+    /// If the provided key is a unique value, returns an iterator that yields
+    /// that single value.
+    pub fn iter(&'a self) -> impl Iterator<Item = &EntryData> {
+        return EntryIter {
+            node: self,
+            dead: false,
+            multi_idx: 0
+        };
+    }
+
+    /// Gets a single value with the given key.
+    ///
+    /// If the provided key is not unique, retrieves the first
+    /// value of the many-set with the given key.
+    pub fn unique(&'a self) -> &EntryData {
+        match self {
+            EntryNode::Unique(entry) => entry,
+            // EntryNode::Many must have vec of arity 2 or more
+            // Any other situation is a bug, and should panic.
+            EntryNode::Many(entries) => entries.first().unwrap()
+        }
+    }
+}
+
 /// Represents a single ListInfo entry fragment
 #[derive(Debug)]
 pub struct EntryFragment<'a> {
@@ -63,38 +91,52 @@ impl<'a> EntryFragment<'a> {
     }
 
     /// Gets the entry node with the given key if it exists
-    pub fn get(&'a self, key: &str) -> Option<&'a EntryNode<'a>> {
+    pub fn entry(&'a self, key: &str) -> Option<&'a EntryNode<'a>> {
         self.keys.get(key)
     }
 
-    /// Gets a single value with the given key if it exists.
+    /// Gets the entry node with the given key if it exists
     ///
-    /// If the provided key is not unique, retrieves the first
-    /// value of the many-set with the given key.
-    pub fn get_unique(&'a self, key: &str) -> Option<&EntryData> {
-        if let Some(EntryNode::Unique(entry)) = self.keys.get(key) {
-            Some(entry)
-        } else if let Some(EntryNode::Many(entries)) = self.keys.get(key) {
-            entries.first()
-        } else {
-            None
-        }
+    /// This is shorthand for `fragment.entry("key").map(|f| f.unique())`
+    pub fn unique(&'a self, key: &str) -> Option<&'a EntryData> {
+        self.keys.get(key).map(|f| f.unique())
     }
 
     /// Gets the values with the given key if it exists.
-    /// 
-    /// If the provided key is a unique value, returns an iterator that yields
-    /// that single value.
-    /// 
-    /// If performance from the boxed iterator is a consideration, you may choose instead
-    pub fn get_iter(&'a self, key: &str) -> Option<Box<dyn Iterator<Item = &EntryData> + 'a>> {
-        if let Some(node) = self.keys.get(key) {
-            let iter: Box<dyn Iterator<Item = &EntryData>> = match node {
-                EntryNode::Unique(entry) => Box::new(iter::once(entry)),
-                EntryNode::Many(entry) => Box::new(entry.iter()),
-            };
-            return Some(iter);
+    ///
+    /// This is shorthand for `fragment.entry("key").map(|f| f.iter())`
+    pub fn iter(&'a self, key: &str) -> Option<impl Iterator<Item = &'a EntryData>> {
+        self.keys.get(key).map(|f| f.iter())
+    }
+}
+
+/// Iterator for `EntryNode`
+struct EntryIter<'a> {
+    node: &'a EntryNode<'a>, 
+    dead: bool,
+    multi_idx: usize,
+}
+
+impl <'a> Iterator for EntryIter<'a> {
+    type Item = &'a EntryData<'a>;
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.dead {
+            return None;
         }
-        return None;
+
+        match self.node {
+            EntryNode::Unique(entry) => {
+                self.dead = true;
+                return Some(entry);
+            }
+            EntryNode::Many(vec) => {
+                let get = vec.get(self.multi_idx);
+                self.multi_idx += 1;
+                if get.is_none() {
+                    self.dead = true;
+                }
+                get
+            },
+        }
     }
 }
