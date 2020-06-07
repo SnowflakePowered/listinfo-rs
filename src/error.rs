@@ -1,8 +1,8 @@
-use nom::{Err, error::ErrorKind};
+use nom::{error::ErrorKind, Err};
 
-use core::fmt::{Display, Formatter, self};
-use alloc::string::String;
 use alloc::borrow::ToOwned;
+use alloc::string::String;
+use core::fmt::{self, Display, Formatter};
 
 /// Error type for listinfo
 #[derive(Debug)]
@@ -22,15 +22,15 @@ impl Display for Error {
     }
 }
 
-#[cfg(feature="std")]
-impl alloc::error::Error for Error { }
+#[cfg(feature = "std")]
+impl alloc::error::Error for Error {}
 
 impl From<Err<(&str, ErrorKind)>> for Error {
     fn from(err: Err<(&str, ErrorKind)>) -> Self {
         match err {
             Err::Incomplete(_) => Error::UnknownError,
             Err::Error((_, e)) => Error::ParseError(e.description().to_owned()),
-            Err::Failure((_, e)) => Error::ParseError(e.description().to_owned())
+            Err::Failure((_, e)) => Error::ParseError(e.description().to_owned()),
         }
     }
 }

@@ -20,7 +20,7 @@ pub struct SubEntry<'a> {
     pub(crate) keys: BTreeMap<&'a str, &'a str>,
 }
 
-impl <'a> SubEntry<'a> {
+impl<'a> SubEntry<'a> {
     /// Retrieves the value of an item data value in the sub-entry
     pub fn get(&'a self, key: &str) -> Option<&'a str> {
         self.keys.get(key).map(|&f| f)
@@ -30,17 +30,17 @@ impl <'a> SubEntry<'a> {
 /// Represents an item data value of an entry
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub enum EntryData<'a> {
-    /// A scalar string entry 
+    /// A scalar string entry
     Scalar(&'a str),
     /// A sub-entry (such as `rom`, for example)
     SubEntry(SubEntry<'a>),
 }
 /// Represents one node in an ListInfo entry
-/// 
+///
 /// Note: The split between `Unique` and `Many` is mostly for
 /// performance reasons to avoid unnescessary allocations.
-/// 
-/// Instead of matching the `EntryNode`, use`EntryFragment::get_unique()` 
+///
+/// Instead of matching the `EntryNode`, use`EntryFragment::get_unique()`
 /// and `EntryFragment::get_iter()` to access `EntryData` per expectations.
 #[derive(Debug, Eq, PartialEq)]
 pub enum EntryNode<'a> {
@@ -50,17 +50,16 @@ pub enum EntryNode<'a> {
     Many(Vec<EntryData<'a>>),
 }
 
-impl <'a> EntryNode<'a> {
-
+impl<'a> EntryNode<'a> {
     /// Gets the values with the given key.
-    /// 
+    ///
     /// If the provided key is a unique value, returns an iterator that yields
     /// that single value.
     pub fn iter(&'a self) -> impl Iterator<Item = &EntryData> {
         return EntryIter {
             node: self,
             dead: false,
-            multi_idx: 0
+            multi_idx: 0,
         };
     }
 
@@ -73,7 +72,7 @@ impl <'a> EntryNode<'a> {
             EntryNode::Unique(entry) => entry,
             // EntryNode::Many must have vec of arity 2 or more
             // Any other situation is a bug, and should panic.
-            EntryNode::Many(entries) => entries.first().unwrap()
+            EntryNode::Many(entries) => entries.first().unwrap(),
         }
     }
 }
@@ -112,12 +111,12 @@ impl<'a> EntryFragment<'a> {
 
 /// Iterator for `EntryNode`
 struct EntryIter<'a> {
-    node: &'a EntryNode<'a>, 
+    node: &'a EntryNode<'a>,
     dead: bool,
     multi_idx: usize,
 }
 
-impl <'a> Iterator for EntryIter<'a> {
+impl<'a> Iterator for EntryIter<'a> {
     type Item = &'a EntryData<'a>;
     fn next(&mut self) -> Option<Self::Item> {
         if self.dead {
@@ -136,7 +135,7 @@ impl <'a> Iterator for EntryIter<'a> {
                     self.dead = true;
                 }
                 get
-            },
+            }
         }
     }
 }

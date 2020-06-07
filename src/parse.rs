@@ -9,8 +9,8 @@ use nom::{
 };
 
 use alloc::collections::BTreeMap;
-use alloc::vec::Vec;
 use alloc::vec;
+use alloc::vec::Vec;
 use core::result::Result;
 
 use crate::elements::*;
@@ -103,7 +103,9 @@ pub fn parse_fragment<'a, 'b>(input: &'a str) -> Result<(&'a str, EntryFragment<
     Ok(fragment)
 }
 
-fn parse_fragment_internal<'a, 'b>(input: &'a str) -> IResult<&'a str, (&'a str, EntryFragment<'a>)> {
+fn parse_fragment_internal<'a, 'b>(
+    input: &'a str,
+) -> IResult<&'a str, (&'a str, EntryFragment<'a>)> {
     let (input, _) = multispace0(input)?;
     let (input, entry_key) = string_key(input)?;
     let (input, _) = open_entry(input)?;
@@ -137,10 +139,7 @@ fn parse_fragment_internal<'a, 'b>(input: &'a str) -> IResult<&'a str, (&'a str,
                 if let Some(node) = map.remove(key) {
                     match node {
                         EntryNode::Unique(prev) => {
-                            map.insert(
-                                key,
-                                EntryNode::Many(vec![prev, EntryData::Scalar(value)]),
-                            );
+                            map.insert(key, EntryNode::Many(vec![prev, EntryData::Scalar(value)]));
                         }
                         EntryNode::Many(mut prevs) => {
                             prevs.push(EntryData::Scalar(value));
