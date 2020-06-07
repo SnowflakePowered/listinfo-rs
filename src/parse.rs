@@ -10,7 +10,7 @@ use nom::{
 
 use std::collections::BTreeMap;
 use crate::elements::*;
-use crate::error::ListInfoError;
+use crate::error::Error;
 
 enum ParsedValue<'a> {
     Subentry(&'a str),
@@ -80,9 +80,9 @@ fn parse_sub_entry_data<'a>(input: &'a str) -> IResult<&'a str, SubEntry<'a>> {
 }
 
 /// Parse multiple ListInfo entries as a document.
-pub fn parse_document<'a>(input: &'a str) -> std::result::Result<DatDocument<'a>, ListInfoError> {
+pub fn parse_document<'a>(input: &'a str) -> std::result::Result<DatDocument<'a>, Error> {
     let (_, fragments) = complete(many1(parse_fragment_internal))(input)?;
-    let mut document: BTreeMap<&'a str, Vec<InfoEntry<'a>>> = BTreeMap::new();
+    let mut document: BTreeMap<&'a str, Vec<EntryFragment<'a>>> = BTreeMap::new();
     for (key, entry) in fragments {
         if let Some(existing) = document.get_mut(key) {
             existing.push(entry);
@@ -94,12 +94,12 @@ pub fn parse_document<'a>(input: &'a str) -> std::result::Result<DatDocument<'a>
 }
 
 /// Parse a single ListInfo entry, returning it's type and the entry.
-pub fn parse_fragment<'a, 'b>(input: &'a str) -> std::result::Result<(&'a str, InfoEntry<'a>), ListInfoError> {
+pub fn parse_fragment<'a, 'b>(input: &'a str) -> std::result::Result<(&'a str, EntryFragment<'a>), Error> {
     let (_, fragment) = parse_fragment_internal(input)?;
     Ok(fragment)
 }
 
-fn parse_fragment_internal<'a, 'b>(input: &'a str) -> IResult<&'a str, (&'a str, InfoEntry<'a>)> {
+fn parse_fragment_internal<'a, 'b>(input: &'a str) -> IResult<&'a str, (&'a str, EntryFragment<'a>)> {
     let (input, _) = multispace0(input)?;
     let (input, entry_key) = string_key(input)?;
     let (input, _) = open_entry(input)?;
@@ -113,42 +113,42 @@ fn parse_fragment_internal<'a, 'b>(input: &'a str) -> IResult<&'a str, (&'a str,
                 if let Ok((_, subentry)) = parse_sub_entry_data(value) {
                     if let Some(node) = map.remove(key) {
                         match node {
-                            InfoNode::Unique(prev) => {
+                            EntryNode::Unique(prev) => {
                                 map.insert(
                                     key,
-                                    InfoNode::Multiple(vec![prev, EntryData::Node(subentry)]),
+                                    EntryNode::Many(vec![prev, EntryData::SubEntry(subentry)]),
                                 );
                             }
-                            InfoNode::Multiple(mut prevs) => {
-                                prevs.push(EntryData::Node(subentry));
-                                map.insert(key, InfoNode::Multiple(prevs));
+                            EntryNode::Many(mut prevs) => {
+                                prevs.push(EntryData::SubEntry(subentry));
+                                map.insert(key, EntryNode::Many(prevs));
                             }
                         }
                     } else {
-                        map.insert(key, InfoNode::Unique(EntryData::Node(subentry)));
+                        map.insert(key, EntryNode::Unique(EntryData::SubEntry(subentry)));
                     }
                 }
             }
             ParsedValue::Value(value) => {
                 if let Some(node) = map.remove(key) {
                     match node {
-                        InfoNode::Unique(prev) => {
+                        EntryNode::Unique(prev) => {
                             map.insert(
                                 key,
-                                InfoNode::Multiple(vec![prev, EntryData::Value(value)]),
+                                EntryNode::Many(vec![prev, EntryData::Scalar(value)]),
                             );
                         }
-                        InfoNode::Multiple(mut prevs) => {
-                            prevs.push(EntryData::Value(value));
-                            map.insert(key, InfoNode::Multiple(prevs));
+                        EntryNode::Many(mut prevs) => {
+                            prevs.push(EntryData::Scalar(value));
+                            map.insert(key, EntryNode::Many(prevs));
                         }
                     }
                 } else {
-                    map.insert(key, InfoNode::Unique(EntryData::Value(value)));
+                    map.insert(key, EntryNode::Unique(EntryData::Scalar(value)));
                 }
             }
         }
     }
     let (input, _) = close_entry(input)?;
-    Ok((input, (entry_key, InfoEntry::new(map))))
+    Ok((input, (entry_key, EntryFragment::new(map))))
 }

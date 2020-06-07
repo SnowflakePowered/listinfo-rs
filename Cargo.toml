@@ -3,7 +3,8 @@ name = "listinfo"
 version = "0.1.0"
 authors = ["Ronny Chan <ronny@ronnychan.ca>"]
 edition = "2018"
-
+license = "MIT"
+keywords = ["clrmamepro", "mame", "dat", "parse"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
