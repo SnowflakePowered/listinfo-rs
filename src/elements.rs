@@ -13,11 +13,11 @@ impl<'a> DatDocument<'a> {
 }
 
 #[derive(Debug, Clone, Eq, PartialEq)]
-pub struct SubEntryData<'a> {
+pub struct SubEntry<'a> {
     pub(crate) keys: BTreeMap<&'a str, &'a str>,
 }
 
-impl <'a> SubEntryData<'a> {
+impl <'a> SubEntry<'a> {
     pub fn get(&'a self, key: &str) -> Option<&'a str> {
         self.keys.get(key).map(|&f| f)
     }
@@ -26,7 +26,7 @@ impl <'a> SubEntryData<'a> {
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub enum EntryData<'a> {
     Value(&'a str),
-    Node(SubEntryData<'a>),
+    Node(SubEntry<'a>),
 }
 #[derive(Debug, Eq, PartialEq)]
 pub enum InfoNode<'a> {

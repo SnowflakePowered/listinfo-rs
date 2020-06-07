@@ -63,7 +63,7 @@ fn parse_sub_entry(input: &str) -> IResult<&str, (&str, ParsedValue)> {
     Ok((input, (key, ParsedValue::Subentry(contents))))
 }
 
-fn parse_sub_entry_data<'a>(input: &'a str) -> IResult<&'a str, SubEntryData<'a>> {
+fn parse_sub_entry_data<'a>(input: &'a str) -> IResult<&'a str, SubEntry<'a>> {
     let (input, _) = multispace0(input)?;
     let (input, keys) = complete(many1(parse_string_value))(input)?;
 
@@ -76,7 +76,7 @@ fn parse_sub_entry_data<'a>(input: &'a str) -> IResult<&'a str, SubEntryData<'a>
             _ => unreachable!(),
         }
     }
-    Ok((input, SubEntryData { keys: map }))
+    Ok((input, SubEntry { keys: map }))
 }
 
 /// Parse multiple ListInfo entries as a document.
