@@ -1,89 +1,65 @@
 use std::collections::BTreeMap;
+use std::iter;
 
 pub struct DatDocument<'a> {
-    pub header: Header<'a>,
-    pub games: Vec<GameEntry<'a>>,
-    pub resources: Vec<GameEntry<'a>>,
+    pub games: Vec<InfoEntry<'a>>,
+    pub resources: Vec<InfoEntry<'a>>,
+}
+
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub struct SubEntryData<'a> {
+    pub(crate) keys: BTreeMap<&'a str, &'a str>,
+}
+
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub enum EntryData<'a> {
+    Value(&'a str),
+    Node(SubEntryData<'a>),
+}
+#[derive(Debug, Eq, PartialEq)]
+pub enum InfoNode<'a> {
+    Unique(EntryData<'a>),
+    Multiple(Vec<EntryData<'a>>),
 }
 
 #[derive(Debug)]
-pub struct Header<'a> {
-    keys: BTreeMap<&'a str, &'a str>,
+pub struct InfoEntry<'a> {
+    keys: BTreeMap<&'a str, InfoNode<'a>>,
+    // roms: Vec<RomEntry<'a>>,
+    // disks: Vec<RomEntry<'a>>,
+    // samples: Vec<&'a str>,
 }
 
-impl<'a> Header<'a> {
-    pub(crate) fn new(keys: BTreeMap<&'a str, &'a str>) -> Self {
-        Header { keys }
-    }
-
-    pub fn get(&'a self, key: &str) -> Option<&'a str> {
-        self.keys.get(key).map(|&s| s)
-    }
-}
-
-#[derive(Debug)]
-pub struct RomEntry<'a> {
-    pub(crate) name: Option<&'a str>,
-    pub(crate) merge: Option<&'a str>,
-    pub(crate) size: Option<u64>,
-    pub(crate) crc: Option<&'a str>,
-    pub(crate) md5: Option<&'a str>,
-    pub(crate) sha1: Option<&'a str>,
-}
-
-impl<'a> RomEntry<'a> {
-    pub fn name(&self) -> Option<&'a str> {
-        self.name
-    }
-    pub fn merge(&self) -> Option<&'a str> {
-        self.merge
-    }
-    pub fn crc(&self) -> Option<&'a str> {
-        self.crc
-    }
-    pub fn md5(&self) -> Option<&'a str> {
-        self.md5
-    }
-    pub fn sha1(&self) -> Option<&'a str> {
-        self.sha1
-    }
-}
-#[derive(Debug)]
-pub struct GameEntry<'a> {
-    keys: BTreeMap<&'a str, &'a str>,
-    roms: Vec<RomEntry<'a>>,
-    disks: Vec<RomEntry<'a>>,
-    samples: Vec<&'a str>,
-}
-
-impl<'a> GameEntry<'a> {
+impl<'a> InfoEntry<'a> {
     pub(crate) fn new(
-        keys: BTreeMap<&'a str, &'a str>,
-        roms: Vec<RomEntry<'a>>,
-        disks: Vec<RomEntry<'a>>,
-        samples: Vec<&'a str>,
+        keys: BTreeMap<&'a str, InfoNode<'a>>,
+        // roms: Vec<RomEntry<'a>>,
+        // disks: Vec<RomEntry<'a>>,
+        // samples: Vec<&'a str>,
     ) -> Self {
-        GameEntry {
-            keys,
-            roms,
-            disks,
-            samples,
+        InfoEntry { keys }
+    }
+
+    pub fn get(&'a self, key: &str) -> Option<&'a InfoNode<'a>> {
+        self.keys.get(key)
+    }
+
+    pub fn get_unique(&'a self, key: &str) -> Option<&EntryData> {
+        if let Some(InfoNode::Unique(entry)) = self.keys.get(key) {
+            Some(entry)
+        } else {
+            None
         }
     }
 
-    pub fn get(&'a self, key: &str) -> Option<&'a str> {
-        self.keys.get(key).map(|&s| s)
-    }
-
-    pub fn roms(&'a self) -> &'a [RomEntry<'a>] {
-        &self.roms
-    }
-
-    pub fn disks(&'a self) -> &'a [RomEntry<'a>] {
-        &self.disks
-    }
-
-    pub fn samples(&'a self) -> &'a [&'a str] {
-        &self.samples
+    pub fn get_iter(&'a self, key: &str) -> Option<Box<dyn Iterator<Item = &EntryData> + 'a>> {
+        if let Some(node) = self.keys.get(key) {
+            let iter: Box<dyn Iterator<Item = &EntryData>> = match node {
+                InfoNode::Unique(entry) => Box::new(iter::once(entry)),
+                InfoNode::Multiple(entry) => Box::new(entry.iter()),
+            };
+            return Some(iter);
+        }
+        return None;
     }
 }
