@@ -58,8 +58,8 @@ fn test_parse_game() {
     const GAME: &str = r#"game (
             name "Test"
             description "SCPH-101 (Version 4.4 03/24/00 A)"
-            rom ( name psone-44a.bin size 524288 crc 6a0e22a0 md5 9a09ab7e49b422c007e6d54d7c49b965 sha1 7771d6e90980408f753891648685def6dd42ef6d )
-            rom ( name psone-44a.bin size 524288 crc 6a0e22a0 md5 9a09ab7e49b422c007e6d54d7c49b965 sha1 7771d6e90980408f753891648685def6dd42ef6d )
+            rom ( name psone-44a.bin size 524288 crc 6a0e22a0 crc hellono md5 9a09ab7e49b422c007e6d54d7c49b965 sha1 7771d6e90980408f753891648685def6dd42ef6d )
+            rom ( name psone-44a.bin size 524288 crc 6a0e22a0 crc hellono md5 9a09ab7e49b422c007e6d54d7c49b965 sha1 7771d6e90980408f753891648685def6dd42ef6d )
             sample hello
             sample hello
         )"#;
@@ -75,14 +75,15 @@ fn test_parse_game() {
     if let Some(roms) = iter {
         for rom in roms {
             if let EntryData::SubEntry(sub) = rom {
-                assert_eq!(sub.value("name"), Some("psone-44a.bin"));
-                assert_eq!(sub.value("size"), Some("524288"));
-                assert_eq!(sub.value("crc"), Some("6a0e22a0"));
+                assert_eq!(sub.value_unique("name"), Some("psone-44a.bin"));
+                assert_eq!(sub.value_unique("size"), Some("524288"));
+                assert_eq!(sub.value_unique("crc"), Some("6a0e22a0"));
+                assert_eq!(sub.value_iter("crc").unwrap().nth(1), Some("hellono"));
                 assert_eq!(
-                    sub.value("sha1"),
+                    sub.value_unique("sha1"),
                     Some("7771d6e90980408f753891648685def6dd42ef6d")
                 );
-                assert_eq!(sub.value("md5"), Some("9a09ab7e49b422c007e6d54d7c49b965"));
+                assert_eq!(sub.value_unique("md5"), Some("9a09ab7e49b422c007e6d54d7c49b965"));
             } else {
                 unreachable!()
             }
@@ -156,14 +157,14 @@ fn test_parse_document() {
             if let Some(roms) = iter {
                 for rom in roms {
                     if let EntryData::SubEntry(sub) = rom {
-                        assert_eq!(sub.value("name"), Some("psone-44a.bin"));
-                        assert_eq!(sub.value("size"), Some("524288"));
-                        assert_eq!(sub.value("crc"), Some("6a0e22a0"));
+                        assert_eq!(sub.value_unique("name"), Some("psone-44a.bin"));
+                        assert_eq!(sub.value_unique("size"), Some("524288"));
+                        assert_eq!(sub.value_unique("crc"), Some("6a0e22a0"));
                         assert_eq!(
-                            sub.value("sha1"),
+                            sub.value_unique("sha1"),
                             Some("7771d6e90980408f753891648685def6dd42ef6d")
                         );
-                        assert_eq!(sub.value("md5"), Some("9a09ab7e49b422c007e6d54d7c49b965"));
+                        assert_eq!(sub.value_unique("md5"), Some("9a09ab7e49b422c007e6d54d7c49b965"));
                     } else {
                         unreachable!()
                     }

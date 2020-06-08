@@ -15,10 +15,10 @@ impl<'a> DatDocument<'a> {
 }
 
 pub struct DatDocumentIter<'a> {
-    inner_iter: alloc::collections::btree_map::Iter<'a, &'a str, Vec<EntryFragment<'a>>>
+    inner_iter: alloc::collections::btree_map::Iter<'a, &'a str, Vec<EntryFragment<'a>>>,
 }
 
-impl<'a> Iterator for  DatDocumentIter<'a> {
+impl<'a> Iterator for DatDocumentIter<'a> {
     type Item = (&'a str, &'a [EntryFragment<'a>]);
     fn next(&mut self) -> Option<Self::Item> {
         if let Some((&k, v)) = self.inner_iter.next() {
@@ -30,15 +30,29 @@ impl<'a> Iterator for  DatDocumentIter<'a> {
 }
 
 /// The contents of a sub-entry (such as `rom` or `disk`) that is a child of a ListInfo entry.
-#[derive(Debug, Clone, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq)]
 pub struct SubEntry<'a> {
-    pub(crate) keys: BTreeMap<&'a str, &'a str>,
+    pub(crate) keys: BTreeMap<&'a str, EntryNode<&'a str>>,
 }
 
 impl<'a> SubEntry<'a> {
     /// Retrieves the value of an item data value in the sub-entry.
-    pub fn value(&'a self, key: &str) -> Option<&'a str> {
-        self.keys.get(key).map(|&f| f)
+    pub fn value(&'a self, key: &str) -> Option<&'a EntryNode<&'a str>> {
+        self.keys.get(key)
+    }
+
+    /// Gets the entry node with the given key if it exists.
+    ///
+    /// This is shorthand for `subentry.value("key").map(|f| f.unique().as_ref())`
+    pub fn value_unique(&'a self, key: &str) -> Option<&'a str> {
+        self.keys.get(key).map(|f| f.unique().as_ref())
+    }
+
+    /// Gets the values with the given key if it exists.
+    ///
+    /// This is shorthand for `fragment.value("key").map(|f| f.iter().map(|&s| s))`
+    pub fn value_iter(&'a self, key: &str) -> Option<impl Iterator<Item = &'a str>> {
+        self.keys.get(key).map(|f| f.iter().map(|&s| s))
     }
 
     pub fn iter(&'a self) -> SubEntryIter<'a> {
@@ -49,13 +63,13 @@ impl<'a> SubEntry<'a> {
 }
 
 pub struct SubEntryIter<'a> {
-    inner_iter: alloc::collections::btree_map::Iter<'a, &'a str, &'a str>,
+    inner_iter: alloc::collections::btree_map::Iter<'a, &'a str, EntryNode<&'a str>>,
 }
 
 impl<'a> Iterator for SubEntryIter<'a> {
-    type Item = (&'a str, &'a str);
+    type Item = (&'a str, &'a EntryNode<&'a str>);
     fn next(&mut self) -> Option<Self::Item> {
-        if let Some((&k, &v)) = self.inner_iter.next() {
+        if let Some((&k, v)) = self.inner_iter.next() {
             Some((k, v))
         } else {
             None
@@ -64,7 +78,7 @@ impl<'a> Iterator for SubEntryIter<'a> {
 }
 
 /// Represents an item data value of an entry.
-#[derive(Debug, Clone, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq)]
 pub enum EntryData<'a> {
     /// A scalar string entry
     Scalar(&'a str),
@@ -80,20 +94,20 @@ pub enum EntryData<'a> {
 /// Instead of matching the `EntryNode`, use`EntryFragment::get_unique()`
 /// and `EntryFragment::get_iter()` to access `EntryData` per expectations.
 #[derive(Debug, Eq, PartialEq)]
-pub enum EntryNode<'a> {
+pub enum EntryNode<T> {
     /// A uniquely keyed node (only one of such key exists in the entry)
-    Unique(EntryData<'a>),
+    Unique(T),
     /// Multiple nodes with the same key.
-    Many(Vec<EntryData<'a>>),
+    Many(Vec<T>),
 }
 
-impl<'a> EntryNode<'a> {
+impl<'a, T> EntryNode<T> {
     /// Gets the values with the given key.
     ///
     /// If the provided key is a unique value, returns an iterator that yields
     /// that single value.
-    pub fn iter(&'a self) -> EntryIter<'a> {
-        return EntryIter {
+    pub fn iter(&'a self) -> EntryNodeIter<'a, T> {
+        return EntryNodeIter {
             node: self,
             dead: false,
             multi_idx: 0,
@@ -104,7 +118,7 @@ impl<'a> EntryNode<'a> {
     ///
     /// If the provided key is not unique, retrieves the first
     /// value of the many-set with the given key.
-    pub fn unique(&'a self) -> &EntryData {
+    pub fn unique(&'a self) -> &T {
         match self {
             EntryNode::Unique(entry) => entry,
             // EntryNode::Many must have vec of arity 2 or more
@@ -117,17 +131,17 @@ impl<'a> EntryNode<'a> {
 /// Represents a single ListInfo entry fragment.
 #[derive(Debug)]
 pub struct EntryFragment<'a> {
-    keys: BTreeMap<&'a str, EntryNode<'a>>,
+    keys: BTreeMap<&'a str, EntryNode<EntryData<'a>>>,
 }
 
 impl<'a> EntryFragment<'a> {
     #[doc(hidden)]
-    pub(crate) fn new(keys: BTreeMap<&'a str, EntryNode<'a>>) -> Self {
+    pub(crate) fn new(keys: BTreeMap<&'a str, EntryNode<EntryData<'a>>>) -> Self {
         EntryFragment { keys }
     }
 
     /// Gets the entry node with the given key if it exists.
-    pub fn entry(&'a self, key: &str) -> Option<&'a EntryNode<'a>> {
+    pub fn entry(&'a self, key: &str) -> Option<&'a EntryNode<EntryData<'a>>> {
         self.keys.get(key)
     }
 
@@ -147,17 +161,19 @@ impl<'a> EntryFragment<'a> {
 
     /// Gets an iterator over the nodes of this fragment.
     pub fn iter(&'a self) -> EntryFragmentIter<'a> {
-        EntryFragmentIter { inner_iter: self.keys.iter() }
+        EntryFragmentIter {
+            inner_iter: self.keys.iter(),
+        }
     }
 }
 
 /// Iterator for `EntryFragment`
 pub struct EntryFragmentIter<'a> {
-    inner_iter: alloc::collections::btree_map::Iter<'a, &'a str, EntryNode<'a>>,
+    inner_iter: alloc::collections::btree_map::Iter<'a, &'a str, EntryNode<EntryData<'a>>>,
 }
 
 impl<'a> Iterator for EntryFragmentIter<'a> {
-    type Item = (&'a str, &'a EntryNode<'a>);
+    type Item = (&'a str, &'a EntryNode<EntryData<'a>>);
     fn next(&mut self) -> Option<Self::Item> {
         if let Some((&k, v)) = self.inner_iter.next() {
             Some((k, v))
@@ -168,14 +184,14 @@ impl<'a> Iterator for EntryFragmentIter<'a> {
 }
 
 /// Iterator for `EntryNode`
-pub struct EntryIter<'a> {
-    node: &'a EntryNode<'a>,
+pub struct EntryNodeIter<'a, T> {
+    node: &'a EntryNode<T>,
     dead: bool,
     multi_idx: usize,
 }
 
-impl<'a> Iterator for EntryIter<'a> {
-    type Item = &'a EntryData<'a>;
+impl<'a, T> Iterator for EntryNodeIter<'a, T> {
+    type Item = &'a T;
     fn next(&mut self) -> Option<Self::Item> {
         if self.dead {
             return None;
