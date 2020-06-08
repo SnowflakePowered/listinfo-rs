@@ -8,9 +8,9 @@ keywords = ["clrmamepro", "mame", "dat", "parse"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-default = ["std"]
+default = ["std", "deserialize"]
 std = []
-deserialize = ["serde"]
+deserialize = ["std", "serde"]
 
 [dependencies]
 nom = { version = "6.0.0-alpha1", default-features = false, features = ["alloc"] }

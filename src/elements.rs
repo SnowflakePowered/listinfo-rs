@@ -14,13 +14,26 @@ impl<'a> DatDocument<'a> {
     }
 }
 
+pub struct DatDocumentIter<'a> {
+    inner_iter: alloc::collections::btree_map::Iter<'a, &'a str, Vec<EntryFragment<'a>>>
+}
+
+impl<'a> Iterator for  DatDocumentIter<'a> {
+    type Item = (&'a str, &'a [EntryFragment<'a>]);
+    fn next(&mut self) -> Option<Self::Item> {
+        if let Some((&k, v)) = self.inner_iter.next() {
+            Some((k, v))
+        } else {
+            None
+        }
+    }
+}
+
 /// The contents of a sub-entry (such as `rom` or `disk`) that is a child of a ListInfo entry.
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct SubEntry<'a> {
     pub(crate) keys: BTreeMap<&'a str, &'a str>,
 }
-
-pub type SubEntryIter<'a> = alloc::collections::btree_map::Iter<'a, &'a str, &'a str>;
 
 impl<'a> SubEntry<'a> {
     /// Retrieves the value of an item data value in the sub-entry.
@@ -28,8 +41,25 @@ impl<'a> SubEntry<'a> {
         self.keys.get(key).map(|&f| f)
     }
 
-    pub fn iter(&'a self) -> impl Iterator<Item = (&'a str, &'a str)> {
-        self.keys.iter().map(|(&k, &v)| (k, v))
+    pub fn iter(&'a self) -> SubEntryIter<'a> {
+        SubEntryIter {
+            inner_iter: self.keys.iter(),
+        }
+    }
+}
+
+pub struct SubEntryIter<'a> {
+    inner_iter: alloc::collections::btree_map::Iter<'a, &'a str, &'a str>,
+}
+
+impl<'a> Iterator for SubEntryIter<'a> {
+    type Item = (&'a str, &'a str);
+    fn next(&mut self) -> Option<Self::Item> {
+        if let Some((&k, &v)) = self.inner_iter.next() {
+            Some((k, v))
+        } else {
+            None
+        }
     }
 }
 
@@ -41,6 +71,7 @@ pub enum EntryData<'a> {
     /// A sub-entry (such as `rom`, for example)
     SubEntry(SubEntry<'a>),
 }
+
 /// Represents one node in an ListInfo entry.
 ///
 /// Note: The split between `Unique` and `Many` is mostly for
@@ -61,7 +92,7 @@ impl<'a> EntryNode<'a> {
     ///
     /// If the provided key is a unique value, returns an iterator that yields
     /// that single value.
-    pub fn iter(&'a self) -> impl Iterator<Item = &EntryData> {
+    pub fn iter(&'a self) -> EntryIter<'a> {
         return EntryIter {
             node: self,
             dead: false,
@@ -103,20 +134,41 @@ impl<'a> EntryFragment<'a> {
     /// Gets the entry node with the given key if it exists.
     ///
     /// This is shorthand for `fragment.entry("key").map(|f| f.unique())`
-    pub fn unique(&'a self, key: &str) -> Option<&'a EntryData> {
+    pub fn entry_unique(&'a self, key: &str) -> Option<&'a EntryData> {
         self.keys.get(key).map(|f| f.unique())
     }
 
     /// Gets the values with the given key if it exists.
     ///
     /// This is shorthand for `fragment.entry("key").map(|f| f.iter())`
-    pub fn iter(&'a self, key: &str) -> Option<impl Iterator<Item = &'a EntryData>> {
+    pub fn entry_iter(&'a self, key: &str) -> Option<impl Iterator<Item = &'a EntryData>> {
         self.keys.get(key).map(|f| f.iter())
+    }
+
+    /// Gets an iterator over the nodes of this fragment.
+    pub fn iter(&'a self) -> EntryFragmentIter<'a> {
+        EntryFragmentIter { inner_iter: self.keys.iter() }
+    }
+}
+
+/// Iterator for `EntryFragment`
+pub struct EntryFragmentIter<'a> {
+    inner_iter: alloc::collections::btree_map::Iter<'a, &'a str, EntryNode<'a>>,
+}
+
+impl<'a> Iterator for EntryFragmentIter<'a> {
+    type Item = (&'a str, &'a EntryNode<'a>);
+    fn next(&mut self) -> Option<Self::Item> {
+        if let Some((&k, v)) = self.inner_iter.next() {
+            Some((k, v))
+        } else {
+            None
+        }
     }
 }
 
 /// Iterator for `EntryNode`
-struct EntryIter<'a> {
+pub struct EntryIter<'a> {
     node: &'a EntryNode<'a>,
     dead: bool,
     multi_idx: usize,
