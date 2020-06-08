@@ -32,12 +32,12 @@ impl<'a> Iterator for DatDocumentIter<'a> {
 /// The contents of a sub-entry (such as `rom` or `disk`) that is a child of a ListInfo entry.
 #[derive(Debug, Eq, PartialEq)]
 pub struct SubEntry<'a> {
-    pub(crate) keys: BTreeMap<&'a str, EntryNode<&'a str>>,
+    pub(crate) keys: BTreeMap<&'a str, Node<&'a str>>,
 }
 
 impl<'a> SubEntry<'a> {
     /// Retrieves the value of an item data value in the sub-entry.
-    pub fn value(&'a self, key: &str) -> Option<&'a EntryNode<&'a str>> {
+    pub fn value(&'a self, key: &str) -> Option<&'a Node<&'a str>> {
         self.keys.get(key)
     }
 
@@ -63,11 +63,11 @@ impl<'a> SubEntry<'a> {
 }
 
 pub struct SubEntryIter<'a> {
-    inner_iter: alloc::collections::btree_map::Iter<'a, &'a str, EntryNode<&'a str>>,
+    inner_iter: alloc::collections::btree_map::Iter<'a, &'a str, Node<&'a str>>,
 }
 
 impl<'a> Iterator for SubEntryIter<'a> {
-    type Item = (&'a str, &'a EntryNode<&'a str>);
+    type Item = (&'a str, &'a Node<&'a str>);
     fn next(&mut self) -> Option<Self::Item> {
         if let Some((&k, v)) = self.inner_iter.next() {
             Some((k, v))
@@ -86,7 +86,7 @@ pub enum EntryData<'a> {
     SubEntry(SubEntry<'a>),
 }
 
-/// Represents one node in an ListInfo entry.
+/// Represents a node with the same key in an ListInfo entry.
 ///
 /// Note: The split between `Unique` and `Many` is mostly for
 /// performance reasons to avoid unnescessary allocations.
@@ -94,14 +94,14 @@ pub enum EntryData<'a> {
 /// Instead of matching the `EntryNode`, use`EntryFragment::get_unique()`
 /// and `EntryFragment::get_iter()` to access `EntryData` per expectations.
 #[derive(Debug, Eq, PartialEq)]
-pub enum EntryNode<T> {
+pub enum Node<T> {
     /// A uniquely keyed node (only one of such key exists in the entry)
     Unique(T),
     /// Multiple nodes with the same key.
     Many(Vec<T>),
 }
 
-impl<'a, T> EntryNode<T> {
+impl<'a, T> Node<T> {
     /// Gets the values with the given key.
     ///
     /// If the provided key is a unique value, returns an iterator that yields
@@ -120,10 +120,10 @@ impl<'a, T> EntryNode<T> {
     /// value of the many-set with the given key.
     pub fn unique(&'a self) -> &T {
         match self {
-            EntryNode::Unique(entry) => entry,
+            Node::Unique(entry) => entry,
             // EntryNode::Many must have vec of arity 2 or more
             // Any other situation is a bug, and should panic.
-            EntryNode::Many(entries) => entries.first().unwrap(),
+            Node::Many(entries) => entries.first().unwrap(),
         }
     }
 }
@@ -131,17 +131,17 @@ impl<'a, T> EntryNode<T> {
 /// Represents a single ListInfo entry fragment.
 #[derive(Debug)]
 pub struct EntryFragment<'a> {
-    keys: BTreeMap<&'a str, EntryNode<EntryData<'a>>>,
+    keys: BTreeMap<&'a str, Node<EntryData<'a>>>,
 }
 
 impl<'a> EntryFragment<'a> {
     #[doc(hidden)]
-    pub(crate) fn new(keys: BTreeMap<&'a str, EntryNode<EntryData<'a>>>) -> Self {
+    pub(crate) fn new(keys: BTreeMap<&'a str, Node<EntryData<'a>>>) -> Self {
         EntryFragment { keys }
     }
 
     /// Gets the entry node with the given key if it exists.
-    pub fn entry(&'a self, key: &str) -> Option<&'a EntryNode<EntryData<'a>>> {
+    pub fn entry(&'a self, key: &str) -> Option<&'a Node<EntryData<'a>>> {
         self.keys.get(key)
     }
 
@@ -169,11 +169,11 @@ impl<'a> EntryFragment<'a> {
 
 /// Iterator for `EntryFragment`
 pub struct EntryFragmentIter<'a> {
-    inner_iter: alloc::collections::btree_map::Iter<'a, &'a str, EntryNode<EntryData<'a>>>,
+    inner_iter: alloc::collections::btree_map::Iter<'a, &'a str, Node<EntryData<'a>>>,
 }
 
 impl<'a> Iterator for EntryFragmentIter<'a> {
-    type Item = (&'a str, &'a EntryNode<EntryData<'a>>);
+    type Item = (&'a str, &'a Node<EntryData<'a>>);
     fn next(&mut self) -> Option<Self::Item> {
         if let Some((&k, v)) = self.inner_iter.next() {
             Some((k, v))
@@ -185,7 +185,7 @@ impl<'a> Iterator for EntryFragmentIter<'a> {
 
 /// Iterator for `EntryNode`
 pub struct EntryNodeIter<'a, T> {
-    node: &'a EntryNode<T>,
+    node: &'a Node<T>,
     dead: bool,
     multi_idx: usize,
 }
@@ -198,11 +198,11 @@ impl<'a, T> Iterator for EntryNodeIter<'a, T> {
         }
 
         match self.node {
-            EntryNode::Unique(entry) => {
+            Node::Unique(entry) => {
                 self.dead = true;
                 return Some(entry);
             }
-            EntryNode::Many(vec) => {
+            Node::Many(vec) => {
                 let get = vec.get(self.multi_idx);
                 self.multi_idx += 1;
                 if get.is_none() {
