@@ -55,7 +55,7 @@ impl<'de> de::Deserializer<'de> for StrDeserializer<'de> {
     }
 }
 
-impl <'de> de::Deserializer<'de> for &'de Node<&'de str> {
+impl<'de> de::Deserializer<'de> for &'de Node<&'de str> {
     type Error = crate::Error;
 
     fn deserialize_any<V>(self, visitor: V) -> Result<V::Value>
@@ -63,36 +63,28 @@ impl <'de> de::Deserializer<'de> for &'de Node<&'de str> {
         V: de::Visitor<'de>,
     {
         match self {
-            Node::Many(entries) => {
-                unimplemented!()
-            }
-            &Node::Unique(entry) => {
-                visitor.visit_borrowed_str(entry)
-            }
+            Node::Many(entries) => unimplemented!(),
+            &Node::Unique(entry) => visitor.visit_borrowed_str(entry),
         }
     }
-    
+
     fn deserialize_str<V>(self, visitor: V) -> Result<V::Value>
-    where V: Visitor<'de> {
+    where
+        V: Visitor<'de>,
+    {
         match self {
-            Node::Many(entries) => {
-                unimplemented!()
-            }
-            &Node::Unique(entry) => {
-                visitor.visit_borrowed_str(entry)
-            }
+            Node::Many(entries) => unimplemented!(),
+            &Node::Unique(entry) => visitor.visit_borrowed_str(entry),
         }
     }
 
     fn deserialize_string<V>(self, visitor: V) -> Result<V::Value>
-    where V: Visitor<'de> {
+    where
+        V: Visitor<'de>,
+    {
         match self {
-            Node::Many(entries) => {
-                unimplemented!()
-            }
-            &Node::Unique(entry) => {
-                visitor.visit_string(String::from(entry))
-            }
+            Node::Many(entries) => unimplemented!(),
+            &Node::Unique(entry) => visitor.visit_string(String::from(entry)),
         }
     }
 
@@ -110,10 +102,7 @@ struct SubEntryDeserializer<'de> {
 
 impl<'de> SubEntryDeserializer<'de> {
     fn new(iter: SubEntryIter<'de>) -> Self {
-        SubEntryDeserializer {
-            iter,
-            value: None,
-        }
+        SubEntryDeserializer { iter, value: None }
     }
 }
 
@@ -127,9 +116,7 @@ impl<'de> MapAccess<'de> for SubEntryDeserializer<'de> {
         match self.iter.next() {
             Some((key, value)) => {
                 self.value = Some(value);
-                let key_de = StrDeserializer {
-                    str: key,
-                };
+                let key_de = StrDeserializer { str: key };
                 seed.deserialize(key_de).map(Some)
             }
             None => Ok(None),
@@ -171,7 +158,6 @@ impl<'de> de::Deserializer<'de> for SubEntryDeserializer<'de> {
     }
 }
 
-
 impl<'de> de::Deserializer<'de> for &'de SubEntry<'de> {
     type Error = crate::Error;
 
@@ -183,7 +169,9 @@ impl<'de> de::Deserializer<'de> for &'de SubEntry<'de> {
     }
 
     fn deserialize_map<V>(self, visitor: V) -> Result<V::Value>
-    where V: Visitor<'de> {
+    where
+        V: Visitor<'de>,
+    {
         let iter = self.iter();
         let mut deserializer = SubEntryDeserializer::new(iter);
         visitor.visit_map(&mut deserializer)
@@ -213,7 +201,7 @@ impl<'de> de::Deserializer<'de> for &'de SubEntry<'de> {
 
 #[derive(Debug, Deserialize)]
 struct TestStruct {
-    hello: String
+    hello: String,
 }
 
 #[test]

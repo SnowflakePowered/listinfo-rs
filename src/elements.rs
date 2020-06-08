@@ -14,6 +14,7 @@ impl<'a> DatDocument<'a> {
     }
 }
 
+/// Iterator for `DatDocument`
 pub struct DatDocumentIter<'a> {
     inner_iter: alloc::collections::btree_map::Iter<'a, &'a str, Vec<EntryFragment<'a>>>,
 }
@@ -55,6 +56,7 @@ impl<'a> SubEntry<'a> {
         self.keys.get(key).map(|f| f.iter().map(|&s| s))
     }
 
+    /// Gets an iterator over the values of this fragment.
     pub fn iter(&'a self) -> SubEntryIter<'a> {
         SubEntryIter {
             inner_iter: self.keys.iter(),
@@ -62,6 +64,7 @@ impl<'a> SubEntry<'a> {
     }
 }
 
+/// Iterator for `SubEntry`
 pub struct SubEntryIter<'a> {
     inner_iter: alloc::collections::btree_map::Iter<'a, &'a str, Node<&'a str>>,
 }
@@ -86,13 +89,14 @@ pub enum EntryData<'a> {
     SubEntry(SubEntry<'a>),
 }
 
-/// Represents a node with the same key in an ListInfo entry.
+/// Represents nodes with the given key in an ListInfo entry.
 ///
-/// Note: The split between `Unique` and `Many` is mostly for
-/// performance reasons to avoid unnescessary allocations.
+/// The split between `Unique` and `Many` is mostly for performance reasons
+/// to avoid unnecessary allocations. `Node::Unique` appeared exactly once in 
+/// the parsed DAT file, while `Node::Unique` appeared more than once.
 ///
-/// Instead of matching the `EntryNode`, use`EntryFragment::get_unique()`
-/// and `EntryFragment::get_iter()` to access `EntryData` per expectations.
+/// Instead of accessing the enum members directly, the `Node::iter` and `Node::unique`
+/// methods abstract over the difference between `Unique` and `Many` for convenience.
 #[derive(Debug, Eq, PartialEq)]
 pub enum Node<T> {
     /// A uniquely keyed node (only one of such key exists in the entry)
@@ -106,8 +110,8 @@ impl<'a, T> Node<T> {
     ///
     /// If the provided key is a unique value, returns an iterator that yields
     /// that single value.
-    pub fn iter(&'a self) -> EntryNodeIter<'a, T> {
-        return EntryNodeIter {
+    pub fn iter(&'a self) -> NodeIter<'a, T> {
+        return NodeIter {
             node: self,
             dead: false,
             multi_idx: 0,
@@ -159,7 +163,7 @@ impl<'a> EntryFragment<'a> {
         self.keys.get(key).map(|f| f.iter())
     }
 
-    /// Gets an iterator over the nodes of this fragment.
+    /// Gets an iterator over the entries of this fragment.
     pub fn iter(&'a self) -> EntryFragmentIter<'a> {
         EntryFragmentIter {
             inner_iter: self.keys.iter(),
@@ -184,13 +188,13 @@ impl<'a> Iterator for EntryFragmentIter<'a> {
 }
 
 /// Iterator for `EntryNode`
-pub struct EntryNodeIter<'a, T> {
+pub struct NodeIter<'a, T> {
     node: &'a Node<T>,
     dead: bool,
     multi_idx: usize,
 }
 
-impl<'a, T> Iterator for EntryNodeIter<'a, T> {
+impl<'a, T> Iterator for NodeIter<'a, T> {
     type Item = &'a T;
     fn next(&mut self) -> Option<Self::Item> {
         if self.dead {

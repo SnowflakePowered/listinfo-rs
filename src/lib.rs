@@ -12,7 +12,9 @@ mod tests;
 
 /// ListInfo parsing functions.
 pub mod parse;
-/// Serde `Deserializer` module.
+
+#[cfg(feature="deserialize")]
+#[doc(hidden)]
 pub mod de;
 
 pub use error::*;

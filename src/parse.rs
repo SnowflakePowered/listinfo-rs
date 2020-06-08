@@ -78,10 +78,7 @@ fn parse_sub_entry_data<'a>(input: &'a str) -> IResult<&'a str, SubEntry<'a>> {
                 if let Some(node) = map.remove(key) {
                     match node {
                         Node::Unique(prev) => {
-                            map.insert(
-                                key,
-                                Node::Many(vec![prev, value]),
-                            );
+                            map.insert(key, Node::Many(vec![prev, value]));
                         }
                         Node::Many(mut prevs) => {
                             prevs.push(value);
@@ -89,9 +86,10 @@ fn parse_sub_entry_data<'a>(input: &'a str) -> IResult<&'a str, SubEntry<'a>> {
                         }
                     }
                 } else {
-                    map.insert(key,Node::Unique(value));
+                    map.insert(key, Node::Unique(value));
                 }
             }
+            // Subentries can not recurse indefinitely.
             _ => unreachable!(),
         }
     }
