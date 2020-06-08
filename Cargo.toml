@@ -5,6 +5,8 @@ authors = ["Ronny Chan <ronny@ronnychan.ca>"]
 edition = "2018"
 license = "MIT"
 keywords = ["clrmamepro", "mame", "dat", "parse"]
+description = "Parser for MAME ListInfo DAT files."
+readme = "Readme.md"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
