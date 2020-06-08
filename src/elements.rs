@@ -20,10 +20,16 @@ pub struct SubEntry<'a> {
     pub(crate) keys: BTreeMap<&'a str, &'a str>,
 }
 
+pub type SubEntryIter<'a> = alloc::collections::btree_map::Iter<'a, &'a str, &'a str>;
+
 impl<'a> SubEntry<'a> {
     /// Retrieves the value of an item data value in the sub-entry.
-    pub fn get(&'a self, key: &str) -> Option<&'a str> {
+    pub fn value(&'a self, key: &str) -> Option<&'a str> {
         self.keys.get(key).map(|&f| f)
+    }
+
+    pub fn iter(&'a self) -> impl Iterator<Item = (&'a str, &'a str)> {
+        self.keys.iter().map(|(&k, &v)| (k, v))
     }
 }
 
