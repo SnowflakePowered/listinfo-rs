@@ -12,14 +12,14 @@ fn test_parse_header() {
         )"#;
 
     let (_, header) = parse::parse_fragment(HEADER).unwrap();
-    assert_eq!(header.unique("name"), Some(&EntryData::Scalar("Test")));
+    assert_eq!(header.entry_unique("name"), Some(&EntryData::Scalar("Test")));
     assert_eq!(
-        header.unique("description"),
+        header.entry_unique("description"),
         Some(&EntryData::Scalar("Test Description"))
     );
-    assert_eq!(header.unique("version"), Some(&EntryData::Scalar("42069")));
+    assert_eq!(header.entry_unique("version"), Some(&EntryData::Scalar("42069")));
     assert_eq!(
-        header.unique("author"),
+        header.entry_unique("author"),
         Some(&EntryData::Scalar("TestAuthor"))
     );
 }
@@ -36,7 +36,7 @@ fn test_parse_singular_iter() {
     let (_, header) = parse::parse_fragment(HEADER).unwrap();
 
     // Test singular iterator
-    for val in header.iter("name").unwrap() {
+    for val in header.entry_iter("name").unwrap() {
         assert_eq!(val, &EntryData::Scalar("Test"));
     }
 }
@@ -49,8 +49,8 @@ fn test_parse_multi_unique() {
         )"#;
     let (_, header) = parse::parse_fragment(HEADER).unwrap();
 
-    assert_eq!(header.unique("name"), Some(&EntryData::Scalar("Test")));
-    assert_eq!(header.unique("name"), Some(&EntryData::Scalar("Test")));
+    assert_eq!(header.entry_unique("name"), Some(&EntryData::Scalar("Test")));
+    assert_eq!(header.entry_unique("name"), Some(&EntryData::Scalar("Test")));
 }
 
 #[test]
@@ -65,13 +65,13 @@ fn test_parse_game() {
         )"#;
 
     let (_, game) = parse::parse_fragment(GAME).unwrap();
-    assert_eq!(game.unique("name"), Some(&EntryData::Scalar("Test")));
+    assert_eq!(game.entry_unique("name"), Some(&EntryData::Scalar("Test")));
     assert_eq!(
-        game.unique("description"),
+        game.entry_unique("description"),
         Some(&EntryData::Scalar("SCPH-101 (Version 4.4 03/24/00 A)"))
     );
 
-    let iter = game.iter("rom");
+    let iter = game.entry_iter("rom");
     if let Some(roms) = iter {
         for rom in roms {
             if let EntryData::SubEntry(sub) = rom {
@@ -89,7 +89,7 @@ fn test_parse_game() {
         }
     }
 
-    let iter = game.iter("sample");
+    let iter = game.entry_iter("sample");
     if let Some(sample) = iter {
         for sample in sample {
             if let &EntryData::Scalar(value) = sample {
