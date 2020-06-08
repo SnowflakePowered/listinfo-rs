@@ -4,7 +4,7 @@ use alloc::borrow::ToOwned;
 use alloc::string::String;
 use core::fmt::{self, Display, Formatter};
 
-/// Error type for listinfo
+/// Error type for `listinfo`.
 #[derive(Debug)]
 pub enum Error {
     /// Error returned by the parser when parsing fails.

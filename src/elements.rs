@@ -1,5 +1,6 @@
 use alloc::collections::BTreeMap;
 use alloc::vec::Vec;
+use crate::iter::*;
 
 /// The contents of a ListInfo DAT file.
 #[derive(Debug)]
@@ -9,24 +10,13 @@ pub struct DatDocument<'a> {
 
 impl<'a> DatDocument<'a> {
     /// Get DAT entries with the given key as an iterator
-    pub fn entry(&self, key: &'a str) -> Option<impl Iterator<Item = &EntryFragment<'a>>> {
+    pub fn entry(&'a self, key: &str) -> Option<impl Iterator<Item = &EntryFragment<'a>>> {
         self.document.get(key).map(|f| f.iter())
     }
-}
 
-/// Iterator for `DatDocument`
-pub struct DatDocumentIter<'a> {
-    inner_iter: alloc::collections::btree_map::Iter<'a, &'a str, Vec<EntryFragment<'a>>>,
-}
-
-impl<'a> Iterator for DatDocumentIter<'a> {
-    type Item = (&'a str, &'a [EntryFragment<'a>]);
-    fn next(&mut self) -> Option<Self::Item> {
-        if let Some((&k, v)) = self.inner_iter.next() {
-            Some((k, v))
-        } else {
-            None
-        }
+    /// Gets an iterator over the fragments of
+    pub fn iter(&'a self) -> SliceIter<'a, EntryFragment<'a>> {
+        SliceIter::new(self.document.iter())
     }
 }
 
@@ -57,26 +47,8 @@ impl<'a> SubEntry<'a> {
     }
 
     /// Gets an iterator over the values of this fragment.
-    pub fn iter(&'a self) -> SubEntryIter<'a> {
-        SubEntryIter {
-            inner_iter: self.keys.iter(),
-        }
-    }
-}
-
-/// Iterator for `SubEntry`
-pub struct SubEntryIter<'a> {
-    inner_iter: alloc::collections::btree_map::Iter<'a, &'a str, Node<&'a str>>,
-}
-
-impl<'a> Iterator for SubEntryIter<'a> {
-    type Item = (&'a str, &'a Node<&'a str>);
-    fn next(&mut self) -> Option<Self::Item> {
-        if let Some((&k, v)) = self.inner_iter.next() {
-            Some((k, v))
-        } else {
-            None
-        }
+    pub fn iter(&'a self) -> EntryIter<'a, Node<&'a str>> {
+        EntryIter::new(self.keys.iter())
     }
 }
 
@@ -111,11 +83,7 @@ impl<'a, T> Node<T> {
     /// If the provided key is a unique value, returns an iterator that yields
     /// that single value.
     pub fn iter(&'a self) -> NodeIter<'a, T> {
-        return NodeIter {
-            node: self,
-            dead: false,
-            multi_idx: 0,
-        };
+        NodeIter::new(self)
     }
 
     /// Gets a single value with the given key.
@@ -164,56 +132,7 @@ impl<'a> EntryFragment<'a> {
     }
 
     /// Gets an iterator over the entries of this fragment.
-    pub fn iter(&'a self) -> EntryFragmentIter<'a> {
-        EntryFragmentIter {
-            inner_iter: self.keys.iter(),
-        }
-    }
-}
-
-/// Iterator for `EntryFragment`
-pub struct EntryFragmentIter<'a> {
-    inner_iter: alloc::collections::btree_map::Iter<'a, &'a str, Node<EntryData<'a>>>,
-}
-
-impl<'a> Iterator for EntryFragmentIter<'a> {
-    type Item = (&'a str, &'a Node<EntryData<'a>>);
-    fn next(&mut self) -> Option<Self::Item> {
-        if let Some((&k, v)) = self.inner_iter.next() {
-            Some((k, v))
-        } else {
-            None
-        }
-    }
-}
-
-/// Iterator for `EntryNode`
-pub struct NodeIter<'a, T> {
-    node: &'a Node<T>,
-    dead: bool,
-    multi_idx: usize,
-}
-
-impl<'a, T> Iterator for NodeIter<'a, T> {
-    type Item = &'a T;
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.dead {
-            return None;
-        }
-
-        match self.node {
-            Node::Unique(entry) => {
-                self.dead = true;
-                return Some(entry);
-            }
-            Node::Many(vec) => {
-                let get = vec.get(self.multi_idx);
-                self.multi_idx += 1;
-                if get.is_none() {
-                    self.dead = true;
-                }
-                get
-            }
-        }
+    pub fn iter(&'a self) -> EntryIter<'a, Node<EntryData<'a>>> {
+        EntryIter::new(self.keys.iter())
     }
 }

@@ -7,6 +7,10 @@ extern crate std as alloc;
 
 mod elements;
 mod error;
+
+/// Iterator types for ListInfo elements.
+pub mod iter;
+
 #[cfg(test)]
 mod tests;
 
@@ -19,4 +23,3 @@ pub mod de;
 
 pub use error::*;
 pub use elements::*;
-

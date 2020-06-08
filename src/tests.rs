@@ -24,6 +24,32 @@ fn test_parse_header() {
     );
 }
 
+
+#[test]
+fn test_parse_header_usability() {
+    const HEADER: &str = r#"clrmamepro (
+            name "Test"
+            description "Test Description"
+            category TestCategory
+            version 42069
+            author "TestAuthor"
+        )"#;
+
+    let header_str = String::from(HEADER);
+    let (_, header) = parse::parse_fragment(&header_str).unwrap();
+    assert_eq!(header.entry_unique("name"), Some(&EntryData::Scalar("Test")));
+    assert_eq!(
+        header.entry_unique("description"),
+        Some(&EntryData::Scalar("Test Description"))
+    );
+    assert_eq!(header.entry_unique("version"), Some(&EntryData::Scalar("42069")));
+    assert_eq!(
+        header.entry_unique("author"),
+        Some(&EntryData::Scalar("TestAuthor"))
+    );
+}
+
+
 #[test]
 fn test_parse_singular_iter() {
     const HEADER: &str = r#"clrmamepro (
