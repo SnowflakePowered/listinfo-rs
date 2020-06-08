@@ -75,7 +75,22 @@ fn parse_sub_entry_data<'a>(input: &'a str) -> IResult<&'a str, SubEntry<'a>> {
     for (key, value) in keys {
         match value {
             ParsedValue::Value(value) => {
-                map.insert(key, value);
+                if let Some(node) = map.remove(key) {
+                    match node {
+                        EntryNode::Unique(prev) => {
+                            map.insert(
+                                key,
+                                EntryNode::Many(vec![prev, value]),
+                            );
+                        }
+                        EntryNode::Many(mut prevs) => {
+                            prevs.push(value);
+                            map.insert(key, EntryNode::Many(prevs));
+                        }
+                    }
+                } else {
+                    map.insert(key,EntryNode::Unique(value));
+                }
             }
             _ => unreachable!(),
         }
