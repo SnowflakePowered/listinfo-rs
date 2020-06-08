@@ -128,17 +128,17 @@ fn test_parse_document() {
     let doc = parse::parse_document(DOCUMENT).unwrap();
     if let Some(header) = doc.entry("clrmamepro") {
         for fragment in header {
-            assert_eq!(fragment.unique("name"), Some(&EntryData::Scalar("Test")));
+            assert_eq!(fragment.entry_unique("name"), Some(&EntryData::Scalar("Test")));
             assert_eq!(
-                fragment.unique("description"),
+                fragment.entry_unique("description"),
                 Some(&EntryData::Scalar("Test Description"))
             );
             assert_eq!(
-                fragment.unique("version"),
+                fragment.entry_unique("version"),
                 Some(&EntryData::Scalar("42069"))
             );
             assert_eq!(
-                fragment.unique("author"),
+                fragment.entry_unique("author"),
                 Some(&EntryData::Scalar("TestAuthor"))
             );
         }
@@ -146,13 +146,13 @@ fn test_parse_document() {
     let games = doc.entry("game");
     if let Some(games) = games {
         for game in games {
-            assert_eq!(game.unique("name"), Some(&EntryData::Scalar("psone-44a")));
+            assert_eq!(game.entry_unique("name"), Some(&EntryData::Scalar("psone-44a")));
             assert_eq!(
-                game.unique("description"),
+                game.entry_unique("description"),
                 Some(&EntryData::Scalar("SCPH-101 (Version 4.4 03/24/00 A)"))
             );
 
-            let iter = game.iter("rom");
+            let iter = game.entry_iter("rom");
             if let Some(roms) = iter {
                 for rom in roms {
                     if let EntryData::SubEntry(sub) = rom {
@@ -170,7 +170,7 @@ fn test_parse_document() {
                 }
             }
 
-            let iter = game.iter("sample");
+            let iter = game.entry_iter("sample");
             if let Some(sample) = iter {
                 for sample in sample {
                     if let &EntryData::Scalar(value) = sample {
