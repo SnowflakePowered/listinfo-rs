@@ -14,4 +14,4 @@ deserialize = ["serde"]
 
 [dependencies]
 nom = { version = "6.0.0-alpha1", default-features = false, features = ["alloc"] }
-# serde = { version = "1.0", default-features = false, features = ["alloc"], optional = true }
+serde = { version = "1.0", default-features = false, features = ["alloc"], optional = true }

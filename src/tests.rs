@@ -75,14 +75,14 @@ fn test_parse_game() {
     if let Some(roms) = iter {
         for rom in roms {
             if let EntryData::SubEntry(sub) = rom {
-                assert_eq!(sub.get("name"), Some("psone-44a.bin"));
-                assert_eq!(sub.get("size"), Some("524288"));
-                assert_eq!(sub.get("crc"), Some("6a0e22a0"));
+                assert_eq!(sub.value("name"), Some("psone-44a.bin"));
+                assert_eq!(sub.value("size"), Some("524288"));
+                assert_eq!(sub.value("crc"), Some("6a0e22a0"));
                 assert_eq!(
-                    sub.get("sha1"),
+                    sub.value("sha1"),
                     Some("7771d6e90980408f753891648685def6dd42ef6d")
                 );
-                assert_eq!(sub.get("md5"), Some("9a09ab7e49b422c007e6d54d7c49b965"));
+                assert_eq!(sub.value("md5"), Some("9a09ab7e49b422c007e6d54d7c49b965"));
             } else {
                 unreachable!()
             }
@@ -156,14 +156,14 @@ fn test_parse_document() {
             if let Some(roms) = iter {
                 for rom in roms {
                     if let EntryData::SubEntry(sub) = rom {
-                        assert_eq!(sub.get("name"), Some("psone-44a.bin"));
-                        assert_eq!(sub.get("size"), Some("524288"));
-                        assert_eq!(sub.get("crc"), Some("6a0e22a0"));
+                        assert_eq!(sub.value("name"), Some("psone-44a.bin"));
+                        assert_eq!(sub.value("size"), Some("524288"));
+                        assert_eq!(sub.value("crc"), Some("6a0e22a0"));
                         assert_eq!(
-                            sub.get("sha1"),
+                            sub.value("sha1"),
                             Some("7771d6e90980408f753891648685def6dd42ef6d")
                         );
-                        assert_eq!(sub.get("md5"), Some("9a09ab7e49b422c007e6d54d7c49b965"));
+                        assert_eq!(sub.value("md5"), Some("9a09ab7e49b422c007e6d54d7c49b965"));
                     } else {
                         unreachable!()
                     }
