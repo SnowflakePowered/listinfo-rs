@@ -77,19 +77,19 @@ fn parse_sub_entry_data<'a>(input: &'a str) -> IResult<&'a str, SubEntry<'a>> {
             ParsedValue::Value(value) => {
                 if let Some(node) = map.remove(key) {
                     match node {
-                        EntryNode::Unique(prev) => {
+                        Node::Unique(prev) => {
                             map.insert(
                                 key,
-                                EntryNode::Many(vec![prev, value]),
+                                Node::Many(vec![prev, value]),
                             );
                         }
-                        EntryNode::Many(mut prevs) => {
+                        Node::Many(mut prevs) => {
                             prevs.push(value);
-                            map.insert(key, EntryNode::Many(prevs));
+                            map.insert(key, Node::Many(prevs));
                         }
                     }
                 } else {
-                    map.insert(key,EntryNode::Unique(value));
+                    map.insert(key,Node::Unique(value));
                 }
             }
             _ => unreachable!(),
@@ -134,35 +134,35 @@ fn parse_fragment_internal<'a, 'b>(
                 if let Ok((_, subentry)) = parse_sub_entry_data(value) {
                     if let Some(node) = map.remove(key) {
                         match node {
-                            EntryNode::Unique(prev) => {
+                            Node::Unique(prev) => {
                                 map.insert(
                                     key,
-                                    EntryNode::Many(vec![prev, EntryData::SubEntry(subentry)]),
+                                    Node::Many(vec![prev, EntryData::SubEntry(subentry)]),
                                 );
                             }
-                            EntryNode::Many(mut prevs) => {
+                            Node::Many(mut prevs) => {
                                 prevs.push(EntryData::SubEntry(subentry));
-                                map.insert(key, EntryNode::Many(prevs));
+                                map.insert(key, Node::Many(prevs));
                             }
                         }
                     } else {
-                        map.insert(key, EntryNode::Unique(EntryData::SubEntry(subentry)));
+                        map.insert(key, Node::Unique(EntryData::SubEntry(subentry)));
                     }
                 }
             }
             ParsedValue::Value(value) => {
                 if let Some(node) = map.remove(key) {
                     match node {
-                        EntryNode::Unique(prev) => {
-                            map.insert(key, EntryNode::Many(vec![prev, EntryData::Scalar(value)]));
+                        Node::Unique(prev) => {
+                            map.insert(key, Node::Many(vec![prev, EntryData::Scalar(value)]));
                         }
-                        EntryNode::Many(mut prevs) => {
+                        Node::Many(mut prevs) => {
                             prevs.push(EntryData::Scalar(value));
-                            map.insert(key, EntryNode::Many(prevs));
+                            map.insert(key, Node::Many(prevs));
                         }
                     }
                 } else {
-                    map.insert(key, EntryNode::Unique(EntryData::Scalar(value)));
+                    map.insert(key, Node::Unique(EntryData::Scalar(value)));
                 }
             }
         }
