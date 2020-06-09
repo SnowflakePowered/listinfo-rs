@@ -1,23 +1,29 @@
 [package]
 name = "listinfo"
-version = "0.3.0"
+version = "0.3.1"
 authors = ["Ronny Chan <ronny@ronnychan.ca>"]
 edition = "2018"
 license = "MIT"
-keywords = ["clrmamepro", "mame", "dat", "parse"]
-description = "Parser for MAME ListInfo DAT files."
+keywords = ["clrmamepro", "mame", "dat", "listinfo", "parse"]
+description = "A zero-copy MAME ListInfo format DAT files parser and deserializer."
 readme = "Readme.md"
+categories = ["parser-implementations", "emulators", "text-processing"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
 default = ["std"]
 std = []
-deserialize = ["std", "serde", "hex"]
-test_deserialize = ["serde/derive"]
+deserialize = ["serde", "hex"]
+test_deserialize = ["deserialize", "serde/derive", "serde_bytes"]
+
 [dependencies]
 nom = { version = "6.0.0-alpha1", default-features = false, features = ["alloc"] }
 serde = { version = "1.0", default-features = false, features = ["alloc"], optional = true }
+serde_bytes = { version = "0.11.4", optional = true}
 hex = { version = "0.4.2", default-features = false, optional = true }
 
 [package.metadata.docs.rs]
+features = [ "test_deserialize", "std" ]
+
+[package.metadata.playground]
 features = [ "std", "deserialize" ]

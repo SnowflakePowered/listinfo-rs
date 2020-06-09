@@ -1,4 +1,5 @@
 use crate::elements::Node;
+use alloc::vec::Vec;
 
 /// Iterator that yields slices.
 pub struct SliceIter<'a, T> {

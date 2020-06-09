@@ -1,6 +1,9 @@
 use crate::elements::*;
 use crate::parse;
 
+#[cfg(not(feature="std"))]
+use alloc::string::String;
+
 #[test]
 fn test_parse_header() {
     const HEADER: &str = r#"clrmamepro (
@@ -12,18 +15,23 @@ fn test_parse_header() {
         )"#;
 
     let (_, header) = parse::parse_fragment(HEADER).unwrap();
-    assert_eq!(header.entry_unique("name"), Some(&EntryData::Scalar("Test")));
+    assert_eq!(
+        header.entry_unique("name"),
+        Some(&EntryData::Scalar("Test"))
+    );
     assert_eq!(
         header.entry_unique("description"),
         Some(&EntryData::Scalar("Test Description"))
     );
-    assert_eq!(header.entry_unique("version"), Some(&EntryData::Scalar("42069")));
+    assert_eq!(
+        header.entry_unique("version"),
+        Some(&EntryData::Scalar("42069"))
+    );
     assert_eq!(
         header.entry_unique("author"),
         Some(&EntryData::Scalar("TestAuthor"))
     );
 }
-
 
 #[test]
 fn test_parse_header_usability() {
@@ -37,18 +45,23 @@ fn test_parse_header_usability() {
 
     let header_str = String::from(HEADER);
     let (_, header) = parse::parse_fragment(&header_str).unwrap();
-    assert_eq!(header.entry_unique("name"), Some(&EntryData::Scalar("Test")));
+    assert_eq!(
+        header.entry_unique("name"),
+        Some(&EntryData::Scalar("Test"))
+    );
     assert_eq!(
         header.entry_unique("description"),
         Some(&EntryData::Scalar("Test Description"))
     );
-    assert_eq!(header.entry_unique("version"), Some(&EntryData::Scalar("42069")));
+    assert_eq!(
+        header.entry_unique("version"),
+        Some(&EntryData::Scalar("42069"))
+    );
     assert_eq!(
         header.entry_unique("author"),
         Some(&EntryData::Scalar("TestAuthor"))
     );
 }
-
 
 #[test]
 fn test_parse_singular_iter() {
@@ -75,8 +88,14 @@ fn test_parse_multi_unique() {
         )"#;
     let (_, header) = parse::parse_fragment(HEADER).unwrap();
 
-    assert_eq!(header.entry_unique("name"), Some(&EntryData::Scalar("Test")));
-    assert_eq!(header.entry_unique("name"), Some(&EntryData::Scalar("Test")));
+    assert_eq!(
+        header.entry_unique("name"),
+        Some(&EntryData::Scalar("Test"))
+    );
+    assert_eq!(
+        header.entry_unique("name"),
+        Some(&EntryData::Scalar("Test"))
+    );
 }
 
 #[test]
@@ -109,7 +128,10 @@ fn test_parse_game() {
                     sub.value_unique("sha1"),
                     Some("7771d6e90980408f753891648685def6dd42ef6d")
                 );
-                assert_eq!(sub.value_unique("md5"), Some("9a09ab7e49b422c007e6d54d7c49b965"));
+                assert_eq!(
+                    sub.value_unique("md5"),
+                    Some("9a09ab7e49b422c007e6d54d7c49b965")
+                );
             } else {
                 unreachable!()
             }
@@ -155,7 +177,10 @@ fn test_parse_document() {
     let doc = parse::parse_document(DOCUMENT).unwrap();
     if let Some(header) = doc.entry("clrmamepro") {
         for fragment in header {
-            assert_eq!(fragment.entry_unique("name"), Some(&EntryData::Scalar("Test")));
+            assert_eq!(
+                fragment.entry_unique("name"),
+                Some(&EntryData::Scalar("Test"))
+            );
             assert_eq!(
                 fragment.entry_unique("description"),
                 Some(&EntryData::Scalar("Test Description"))
@@ -173,7 +198,10 @@ fn test_parse_document() {
     let games = doc.entry("game");
     if let Some(games) = games {
         for game in games {
-            assert_eq!(game.entry_unique("name"), Some(&EntryData::Scalar("psone-44a")));
+            assert_eq!(
+                game.entry_unique("name"),
+                Some(&EntryData::Scalar("psone-44a"))
+            );
             assert_eq!(
                 game.entry_unique("description"),
                 Some(&EntryData::Scalar("SCPH-101 (Version 4.4 03/24/00 A)"))
@@ -190,7 +218,10 @@ fn test_parse_document() {
                             sub.value_unique("sha1"),
                             Some("7771d6e90980408f753891648685def6dd42ef6d")
                         );
-                        assert_eq!(sub.value_unique("md5"), Some("9a09ab7e49b422c007e6d54d7c49b965"));
+                        assert_eq!(
+                            sub.value_unique("md5"),
+                            Some("9a09ab7e49b422c007e6d54d7c49b965")
+                        );
                     } else {
                         unreachable!()
                     }
@@ -208,5 +239,49 @@ fn test_parse_document() {
                 }
             }
         }
+    }
+}
+
+#[test]
+fn parse_cave_story() {
+    const CAVE_STORY: &str = r#"clrmamepro (
+                name "Cave Story"
+                description "Cave Story"
+                version 20161204
+                comment "libretro | www.libretro.com"
+            )
+            game (
+                name "Cave Story (En)"
+                description "Cave Story (En)"
+                developer "Studio Pixel"
+                releaseyear "2004"
+                rom ( 
+                    name "Doukutsu.exe"
+                    size 1478656 
+                    crc c5a2a3f6 
+                    md5 38695d3d69d7a0ada8178072dad4c58b 
+                    sha1 bb2d0441e073da9c584f23c2ad8c7ab8aac293bf
+                )
+            )
+        "#;
+
+    let document = parse::parse_document(CAVE_STORY).unwrap();
+    let header = document.entry("clrmamepro").unwrap().next().unwrap();
+    let game = document.entry("game").unwrap().next().unwrap();
+    let rom = game.entry_unique("rom").unwrap();
+    assert_eq!(
+        header.entry_unique("name"),
+        Some(&EntryData::Scalar("Cave Story"))
+    );
+    assert_eq!(
+        game.entry_unique("name"),
+        Some(&EntryData::Scalar("Cave Story (En)"))
+    );
+    assert_eq!(
+        header.entry_unique("name"),
+        Some(&EntryData::Scalar("Cave Story"))
+    );
+    if let EntryData::SubEntry(rom) = rom {
+        assert_eq!(rom.value_unique("name"), Some("Doukutsu.exe"))
     }
 }

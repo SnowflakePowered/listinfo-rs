@@ -1,7 +1,8 @@
-use crate::{elements::*, Error, de::*};
+use crate::{de::*, elements::*, Error};
 use core::result::Result as CoreResult;
 use serde::de::{self, Deserializer, Visitor};
 type Result<T> = CoreResult<T, Error>;
+use alloc::string::String;
 use serde::serde_if_integer128;
 
 macro_rules! deserialize_primitive {
@@ -179,9 +180,7 @@ impl<'de> Deserializer<'de> for &'de EntryData<'de> {
                 de::Unexpected::Str(input),
                 &visitor,
             )),
-            EntryData::SubEntry(entry) => {
-                visitor.visit_map(entry.into_deserializer())
-            }
+            EntryData::SubEntry(entry) => visitor.visit_map(entry.into_deserializer()),
         }
     }
 

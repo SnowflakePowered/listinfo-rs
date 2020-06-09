@@ -1,5 +1,6 @@
 use super::NodeDeserializer;
 use crate::Error;
+use alloc::string::String;
 use core::result::Result as CoreResult;
 use hex;
 use serde::de::{self, DeserializeSeed, Deserializer, IntoDeserializer, SeqAccess, Visitor};

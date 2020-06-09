@@ -1,3 +1,10 @@
+//! Parsing routines for MAME ListInfo DAT files
+//! 
+//! Most use cases should be covered by `parse_document`.
+//! `parse_fragment` only succeeds in parsing a single fragment.
+//!
+//! A "fragment" is a single grouping in a ListInfo DAT.
+
 use nom::{
     branch::alt,
     bytes::complete::{is_not, take_till1},
@@ -110,7 +117,7 @@ pub fn parse_document<'a>(input: &'a str) -> Result<DatDocument<'a>, Error> {
     Ok(DatDocument { document })
 }
 
-/// Parse a single ListInfo entry, returning it's type and the entry.
+/// Parse a single ListInfo entry, returning it's key and the entry.
 pub fn parse_fragment<'a, 'b>(input: &'a str) -> Result<(&'a str, EntryFragment<'a>), Error> {
     let (_, fragment) = parse_fragment_internal(input)?;
     Ok(fragment)

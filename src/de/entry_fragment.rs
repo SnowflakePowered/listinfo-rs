@@ -1,6 +1,8 @@
 use crate::elements::*;
 use crate::iter::*;
 use crate::Error;
+
+use alloc::string::ToString;
 use core::result::Result as CoreResult;
 use serde::de::{DeserializeSeed, Deserializer, IntoDeserializer, MapAccess, Visitor};
 use serde::forward_to_deserialize_any;

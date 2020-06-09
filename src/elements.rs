@@ -21,6 +21,16 @@ impl<'a> DatDocument<'a> {
 }
 
 /// The contents of a sub-entry (such as `rom` or `disk`) that is a child of a ListInfo entry.
+///
+/// Sub-entries can not contain their own sub-entries and can only contain scalars or lists of scalars.
+/// For example, the `rom` entries in the following fragment are sub-entries.
+/// 
+/// ```listinfo
+/// game (
+///  rom (name "Rom 1")
+///  rom (name "Rom 2")
+/// )
+/// ```
 #[derive(Debug, Eq, PartialEq)]
 pub struct SubEntry<'a> {
     pub(crate) keys: BTreeMap<&'a str, Node<&'a str>>,
@@ -101,6 +111,16 @@ impl<'a, T> Node<T> {
 }
 
 /// Represents a single ListInfo entry fragment.
+///
+/// An entry fragment is a top level element in a ListInfo DAT document.
+///
+/// The following is an example of a `clrmamepro` fragment with a `name` element.
+///
+/// ```listinfo
+/// clrmamepro (
+///   name "DAT file."
+/// )
+/// ```
 #[derive(Debug)]
 pub struct EntryFragment<'a> {
     keys: BTreeMap<&'a str, Node<EntryData<'a>>>,
