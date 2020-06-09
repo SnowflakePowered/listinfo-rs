@@ -1,30 +1,11 @@
-use crate::elements::*;
-use crate::iter::*;
 use crate::Error;
-use core::any::type_name;
 use core::result::Result as CoreResult;
 use hex;
-use serde::de::{
-    self, DeserializeSeed, Deserializer, IntoDeserializer,
-    SeqAccess, Visitor,
-};
-use serde::forward_to_deserialize_any;
+use serde::de::{self, DeserializeSeed, Deserializer, IntoDeserializer, SeqAccess, Visitor};
 use serde::serde_if_integer128;
-type Result<T> = CoreResult<T, crate::Error>;
+use super::NodeDeserializer;
 
-pub struct NodeDeserializer<'a, T> {
-    iter: NodeIter<'a, T>,
-    item: &'a T,
-}
-
-impl<'a, T> NodeDeserializer<'a, T> {
-    pub(crate) fn new(n: &'a Node<T>) -> Self {
-        NodeDeserializer {
-            iter: n.iter(),
-            item: n.unique(),
-        }
-    }
-}
+type Result<T> = CoreResult<T, Error>;
 
 impl<'de> SeqAccess<'de> for NodeDeserializer<'de, &'de str> {
     type Error = crate::Error;
@@ -53,8 +34,8 @@ macro_rules! deserialize_primitive {
             self,
             visitor: V,
         ) -> core::result::Result<V::Value, Error> {
-            let value = self.item.parse::<$t>().map_err(|_| {
-                Error::DeserializationTypeError(self.item.to_string(), type_name::<$t>())
+            let value = self.item.parse::<$t>().map_err::<Error, _>(|_| {
+                de::Error::invalid_type(de::Unexpected::Str(self.item), &visitor)
             })?;
             visitor.$visit(value)
         }
@@ -85,12 +66,13 @@ impl<'de> Deserializer<'de> for NodeDeserializer<'de, &'de str> {
         visitor.visit_seq(self)
     }
 
-    fn deserialize_any<V>(self, visitor: V) -> Result<V::Value>
+    fn deserialize_any<V>(self, _visitor: V) -> Result<V::Value>
     where
         V: Visitor<'de>,
     {
-        todo!()
+        unimplemented!()
     }
+
     fn deserialize_bool<V>(self, visitor: V) -> Result<V::Value>
     where
         V: Visitor<'de>,
@@ -98,8 +80,8 @@ impl<'de> Deserializer<'de> for NodeDeserializer<'de, &'de str> {
         match self.item {
             &"yes" => visitor.visit_bool(true),
             &"no" => visitor.visit_bool(false),
-            _ => visitor.visit_bool(self.item.parse::<bool>().map_err(|_| {
-                Error::DeserializationTypeError(self.item.to_string(), type_name::<bool>())
+            _ => visitor.visit_bool(self.item.parse::<bool>().map_err::<Error, _>(|_| {
+                de::Error::invalid_type(de::Unexpected::Str(self.item), &"bool")
             })?),
         }
     }
@@ -191,7 +173,10 @@ impl<'de> Deserializer<'de> for NodeDeserializer<'de, &'de str> {
     where
         V: Visitor<'de>,
     {
-        Err(de::Error::invalid_type(de::Unexpected::Map, &visitor))
+        Err(de::Error::invalid_type(
+            de::Unexpected::Str(self.item),
+            &visitor,
+        ))
     }
 
     fn deserialize_struct<V>(
