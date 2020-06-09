@@ -1,6 +1,6 @@
 [package]
 name = "listinfo"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Ronny Chan <ronny@ronnychan.ca>"]
 edition = "2018"
 license = "MIT"
@@ -10,7 +10,7 @@ readme = "Readme.md"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-default = ["std", "deserialize"]
+default = ["std"]
 std = []
 deserialize = ["std", "serde", "hex"]
 test_deserialize = ["serde/derive"]
