@@ -93,7 +93,7 @@ impl<'a, T> Node<T> {
     pub fn unique(&'a self) -> &T {
         match self {
             Node::Unique(entry) => entry,
-            // EntryNode::Many must have vec of arity 2 or more
+            // Node::Many must have vec of arity 2 or more
             // Any other situation is a bug, and should panic.
             Node::Many(entries) => entries.first().unwrap(),
         }

@@ -1,14 +1,16 @@
 use serde::de::{
     self, DeserializeSeed, EnumAccess, IntoDeserializer, MapAccess, SeqAccess, VariantAccess,
-    Visitor,
+    Visitor, value,
 };
 use serde::forward_to_deserialize_any;
 use serde::Deserialize;
 
 use crate::elements::*;
+use crate::iter::*;
 use crate::parse::parse_document;
 use core::result::Result as CoreResult;
 
+use super::node::NodeDeserializer;
 pub struct Deserializer<'de> {
     input: DatDocument<'de>,
 }
@@ -55,53 +57,13 @@ impl<'de> de::Deserializer<'de> for StrDeserializer<'de> {
     }
 }
 
-impl<'de> de::Deserializer<'de> for &'de Node<&'de str> {
-    type Error = crate::Error;
-
-    fn deserialize_any<V>(self, visitor: V) -> Result<V::Value>
-    where
-        V: de::Visitor<'de>,
-    {
-        match self {
-            Node::Many(entries) => unimplemented!(),
-            &Node::Unique(entry) => visitor.visit_borrowed_str(entry),
-        }
-    }
-
-    fn deserialize_str<V>(self, visitor: V) -> Result<V::Value>
-    where
-        V: Visitor<'de>,
-    {
-        match self {
-            Node::Many(entries) => unimplemented!(),
-            &Node::Unique(entry) => visitor.visit_borrowed_str(entry),
-        }
-    }
-
-    fn deserialize_string<V>(self, visitor: V) -> Result<V::Value>
-    where
-        V: Visitor<'de>,
-    {
-        match self {
-            Node::Many(entries) => unimplemented!(),
-            &Node::Unique(entry) => visitor.visit_string(String::from(entry)),
-        }
-    }
-
-    forward_to_deserialize_any! {
-        bool i8 i16 i32 i64 i128 u8 u16 u32 u64 u128 f32 f64 char
-        bytes byte_buf option unit unit_struct newtype_struct seq tuple
-        tuple_struct map struct identifier ignored_any enum
-    }
-}
-
 struct SubEntryDeserializer<'de> {
-    iter: SubEntryIter<'de>,
+    iter: EntryIter<'de, Node<&'de str>>,
     value: Option<&'de Node<&'de str>>,
 }
 
 impl<'de> SubEntryDeserializer<'de> {
-    fn new(iter: SubEntryIter<'de>) -> Self {
+    fn new(iter: EntryIter<'de, Node<&'de str>>) -> Self {
         SubEntryDeserializer { iter, value: None }
     }
 }
@@ -128,7 +90,7 @@ impl<'de> MapAccess<'de> for SubEntryDeserializer<'de> {
         T: DeserializeSeed<'de>,
     {
         match self.value.take() {
-            Some(value) => seed.deserialize(value),
+            Some(value) => seed.deserialize(NodeDeserializer::new(value)),
             None => Err(crate::Error::SerdeError("value is missing".to_string())),
         }
     }
@@ -200,14 +162,21 @@ impl<'de> de::Deserializer<'de> for &'de SubEntry<'de> {
 }
 
 #[derive(Debug, Deserialize)]
+struct Help(i32);
+#[derive(Debug, Deserialize)]
 struct TestStruct {
-    hello: String,
+    hello: Vec<String>,
+    number: Option<Help>,
+
+    test: Option<String>
 }
 
 #[test]
 fn test_deserialize() {
     let mut map = alloc::collections::BTreeMap::new();
-    map.insert("hello", Node::Unique("world"));
+    map.insert("hello", Node::Many(vec!["world", "foo"]));
+    map.insert("number", Node::Unique("1"));
+
     let entry = SubEntry { keys: map };
     let t = TestStruct::deserialize(&entry);
     println!("{:?}", t);
