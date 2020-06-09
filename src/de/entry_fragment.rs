@@ -2,13 +2,12 @@ use crate::elements::*;
 use crate::iter::*;
 use crate::Error;
 use core::result::Result as CoreResult;
-use serde::de::{DeserializeSeed, Deserializer, IntoDeserializer, MapAccess, SeqAccess,  Visitor};
+use serde::de::{DeserializeSeed, Deserializer, IntoDeserializer, MapAccess, Visitor};
 use serde::forward_to_deserialize_any;
-
-use super::node::NodeDeserializer;
 
 type Result<T> = CoreResult<T, Error>;
 
+/// A deserializer for a ListInfo DAT fragment.
 pub struct EntryFragmentDeserializer<'de> {
     iter: EntryIter<'de, Node<EntryData<'de>>>,
     value: Option<&'de Node<EntryData<'de>>>
@@ -17,6 +16,11 @@ pub struct EntryFragmentDeserializer<'de> {
 impl<'de> EntryFragmentDeserializer<'de> {
     pub(crate) fn new(iter: EntryIter<'de, Node<EntryData<'de>>>) -> Self {
         EntryFragmentDeserializer { iter, value: None }
+    }
+
+    /// Creates a DAT deserializer from a parsed document.
+    pub fn from_fragment(fragment: &'de EntryFragment<'de>) -> Self {
+        Self::new(fragment.iter())
     }
 }
 
@@ -42,7 +46,7 @@ impl<'de> MapAccess<'de> for EntryFragmentDeserializer<'de> {
         T: DeserializeSeed<'de>,
     {
         match self.value.take() {
-            Some(value) => seed.deserialize(NodeDeserializer::new(value)),
+            Some(value) => seed.deserialize(value.into_deserializer()),
             None => Err(crate::Error::SerdeError("value is missing".to_string())),
         }
     }

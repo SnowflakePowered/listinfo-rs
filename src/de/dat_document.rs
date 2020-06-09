@@ -1,22 +1,27 @@
 use crate::elements::*;
 use crate::iter::*;
+
 use crate::Error;
 use core::result::Result as CoreResult;
 use serde::de::{DeserializeSeed, Deserializer, IntoDeserializer, MapAccess, SeqAccess, Visitor};
 use serde::forward_to_deserialize_any;
 
-use super::entry_fragment::EntryFragmentDeserializer;
-
 type Result<T> = CoreResult<T, Error>;
 
+/// A deserializer for a ListInfo DAT.
 pub struct DatDocumentDeserializer<'de> {
     iter: SliceIter<'de, EntryFragment<'de>>,
     value: Option<&'de [EntryFragment<'de>]>,
 }
 
 impl<'de> DatDocumentDeserializer<'de> {
-    pub fn new(iter: SliceIter<'de, EntryFragment<'de>>) -> Self {
+    pub(crate) fn new(iter: SliceIter<'de, EntryFragment<'de>>) -> Self {
         DatDocumentDeserializer { iter, value: None }
+    }
+
+    /// Creates a DAT deserializer from a parsed document.
+    pub fn from_document(doc: &'de DatDocument<'de>) -> Self {
+        Self::new(doc.iter())
     }
 }
 
@@ -78,8 +83,8 @@ impl<'de> SeqAccess<'de> for FragmentSliceDeserializer<'de> {
         T: DeserializeSeed<'de>,
     {
         match self.iter.next() {
-            Some(value) => seed
-                .deserialize(EntryFragmentDeserializer::new(value.iter()))
+            Some(fragment) => seed
+                .deserialize(fragment.into_deserializer())
                 .map(Some),
             None => Ok(None),
         }
@@ -114,7 +119,7 @@ impl<'de> Deserializer<'de> for FragmentSliceDeserializer<'de> {
     where
         V: Visitor<'de>,
     {
-        visitor.visit_map(EntryFragmentDeserializer::new(self.item.iter()))
+        visitor.visit_map(self.item.into_deserializer())
     }
 
     fn deserialize_struct<V>(

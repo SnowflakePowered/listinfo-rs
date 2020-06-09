@@ -5,8 +5,6 @@ use core::result::Result as CoreResult;
 use serde::de::{DeserializeSeed, Deserializer, IntoDeserializer, MapAccess, Visitor};
 use serde::forward_to_deserialize_any;
 
-use super::node::NodeDeserializer;
-
 type Result<T> = CoreResult<T, Error>;
 
 pub struct SubEntryDeserializer<'de> {
@@ -42,7 +40,7 @@ impl<'de> MapAccess<'de> for SubEntryDeserializer<'de> {
         T: DeserializeSeed<'de>,
     {
         match self.value.take() {
-            Some(value) => seed.deserialize(NodeDeserializer::new(value)),
+            Some(value) => seed.deserialize(value.into_deserializer()),
             None => Err(crate::Error::SerdeError("value is missing".to_string())),
         }
     }

@@ -1,9 +1,9 @@
+use super::NodeDeserializer;
 use crate::Error;
 use core::result::Result as CoreResult;
 use hex;
 use serde::de::{self, DeserializeSeed, Deserializer, IntoDeserializer, SeqAccess, Visitor};
 use serde::serde_if_integer128;
-use super::NodeDeserializer;
 
 type Result<T> = CoreResult<T, Error>;
 
@@ -136,7 +136,7 @@ impl<'de> Deserializer<'de> for NodeDeserializer<'de, &'de str> {
         visitor.visit_unit()
     }
 
-    fn deserialize_unit_struct<V>(self, name: &'static str, visitor: V) -> Result<V::Value>
+    fn deserialize_unit_struct<V>(self, _name: &'static str, visitor: V) -> Result<V::Value>
     where
         V: Visitor<'de>,
     {

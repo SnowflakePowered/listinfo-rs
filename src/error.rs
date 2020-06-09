@@ -11,7 +11,6 @@ pub enum Error {
     ParseError(String),
     /// Error returned by serde.
     SerdeError(String),
-    DeserializationTypeError(String, &'static str),
     /// Unknown or unexpected error occurred.
     UnknownError,
 }
@@ -21,8 +20,6 @@ impl Display for Error {
         match self {
             Error::ParseError(msg) => f.write_str(msg),
             Error::SerdeError(msg) => f.write_str(msg),
-            Error::DeserializationTypeError(input, type_id) 
-                => f.write_fmt(format_args!("Tried to convert {} into {}", input, type_id)),
             Error::UnknownError => f.write_str("Unknown Error"),
         }
     }

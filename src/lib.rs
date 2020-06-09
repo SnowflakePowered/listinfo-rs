@@ -18,7 +18,7 @@ mod tests;
 pub mod parse;
 
 #[cfg(feature="deserialize")]
-#[doc(hidden)]
+/// Serde `Deserializer` implementation.
 pub mod de;
 
 pub use error::*;

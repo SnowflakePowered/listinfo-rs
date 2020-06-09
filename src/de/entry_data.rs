@@ -1,6 +1,4 @@
-use super::sub_entry::SubEntryDeserializer;
-use crate::elements::*;
-use crate::Error;
+use crate::{elements::*, Error, de::*};
 use core::result::Result as CoreResult;
 use serde::de::{self, Deserializer, Visitor};
 type Result<T> = CoreResult<T, Error>;
@@ -181,8 +179,8 @@ impl<'de> Deserializer<'de> for &'de EntryData<'de> {
                 de::Unexpected::Str(input),
                 &visitor,
             )),
-            EntryData::SubEntry(input) => {
-                visitor.visit_map(SubEntryDeserializer::new(input.iter()))
+            EntryData::SubEntry(entry) => {
+                visitor.visit_map(entry.into_deserializer())
             }
         }
     }

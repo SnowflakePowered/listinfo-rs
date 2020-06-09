@@ -13,10 +13,10 @@ readme = "Readme.md"
 default = ["std", "deserialize"]
 std = []
 deserialize = ["std", "serde", "hex"]
-
+test_deserialize = ["serde/derive"]
 [dependencies]
 nom = { version = "6.0.0-alpha1", default-features = false, features = ["alloc"] }
-serde = { version = "1.0", default-features = false, features = ["alloc", "derive"], optional = true }
+serde = { version = "1.0", default-features = false, features = ["alloc"], optional = true }
 hex = { version = "0.4.2", default-features = false, optional = true }
 
 [package.metadata.docs.rs]
