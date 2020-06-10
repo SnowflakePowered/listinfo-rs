@@ -8,7 +8,7 @@ A zero-copy MAME ListInfo format DAT files parser.
 ---
 
 ## Usage
-listinfo-rs provides a lower-level zero-copy expression tree API as well as a more user friendly Serde deserialization API. See the crate documentation or tests for more detailed examples.
+listinfo-rs provides a lower-level zero-copy expression tree API as well as a more user friendly Serde deserialization API. See the crate documentation or tests for more detail examples.
 
 ```rust
 #[test]
@@ -36,7 +36,7 @@ fn parse_cave_story() {
 listinfo-rs supports deserialization with `serde`, after enabling support in `Cargo.toml`
 
 ```toml
-listinfo = { version = "0.1", features = ["deserialize"] }
+listinfo = { version = "0.3", features = ["deserialize"] }
 ```
 
 Deserialization works like any other Serde deserializer crate.
@@ -116,5 +116,5 @@ listinfo-rs supports `no_std`, but requires `alloc`.
 You can disable `std` support in `Cargo.toml`. 
 
 ```toml
-listinfo = { version = "0.1", default-features = false }
+listinfo = { version = "0.3", default-features = false }
 ```

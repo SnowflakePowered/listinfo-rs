@@ -4,7 +4,7 @@
 //! This must first be enabled in Cargo.toml
 //!
 //! ```toml
-//! listinfo = { version = "0.1", features = ["deserialize"] }
+//! listinfo = { version = "0.3", features = ["deserialize"] }
 //! ```
 //! 
 //! ## Usage

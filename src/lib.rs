@@ -64,7 +64,7 @@
 //! You can enable `no_std` support like in Cargo.toml
 //!
 //! ```toml
-//! listinfo = { version = "0.1", default-features = false }
+//! listinfo = { version = "0.3", default-features = false }
 //! ```
 
 #![cfg_attr(not(feature = "std"), no_std)]
