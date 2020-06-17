@@ -69,7 +69,7 @@ fn parse_string_value(input: &str) -> IResult<&str, (&str, ParsedValue)> {
     let (input, key) = string_key(input)?;
     let (input, _) = char(' ')(input)?;
     let (input, value) = alt((quoted_string, unquoted_string))(input)?;
-    Ok((input, (key, ParsedValue::Value(value))))
+    Ok((input, (key, ParsedValue::Value(value.trim()))))
 }
 
 fn parse_sub_entry(input: &str) -> IResult<&str, (&str, ParsedValue)> {
