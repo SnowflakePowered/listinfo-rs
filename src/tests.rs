@@ -285,3 +285,20 @@ fn parse_cave_story() {
         assert_eq!(rom.value_unique("name"), Some("Doukutsu.exe"))
     }
 }
+
+#[test]
+fn parse_inner_braces() {
+    const TEST_FRAGMENT: &str = r#"
+    game (
+        rom ( name ps-22j(v).bin size 1048576 crc 446ec5b2 md5 81328b966e6dcf7ea1e32e55e1c104bb sha1 15c94da3cc5a38a582429575af4198c487fe893c )
+    )
+    "#;
+
+    let (_, fragment) = parse::parse_fragment(TEST_FRAGMENT).unwrap();
+    if let Some(EntryData::SubEntry(rom)) = fragment.entry_unique("rom") {
+        assert_eq!(Some("ps-22j(v).bin"), rom.value_unique("name"))
+    } else {
+        panic!()
+    }
+    
+}

@@ -23,8 +23,9 @@ use core::result::Result;
 use crate::elements::*;
 use crate::error::Error;
 
+#[derive(Debug)]
 enum ParsedValue<'a> {
-    Subentry(&'a str),
+    Subentry(Vec<(&'a str, ParsedValue<'a>)>),
     Value(&'a str),
 }
 
@@ -40,8 +41,13 @@ fn close_entry(input: &str) -> IResult<&str, char> {
     Ok((input, close))
 }
 
-fn subentry_contents(input: &str) -> IResult<&str, &str> {
-    delimited(char('('), is_not(")"), char(')'))(input)
+fn subentry_contents(input: &str) -> IResult<&str, Vec<(&str, ParsedValue)>> {
+    let (input, _) = multispace0(input)?;
+    let (input, _) = char('(')(input)?;
+    let (input, results) = many1(parse_string_value)(input)?;
+    let (input, _) = multispace0(input)?;
+    let (input, _) = char(')')(input)?;
+    Ok((input, results))
 }
 
 fn quoted_string(input: &str) -> IResult<&str, &str> {
@@ -74,10 +80,7 @@ fn parse_sub_entry(input: &str) -> IResult<&str, (&str, ParsedValue)> {
     Ok((input, (key, ParsedValue::Subentry(contents))))
 }
 
-fn parse_sub_entry_data<'a>(input: &'a str) -> IResult<&'a str, SubEntry<'a>> {
-    let (input, _) = multispace0(input)?;
-    let (input, keys) = complete(many1(parse_string_value))(input)?;
-
+fn parse_sub_entry_data<'a>(keys: Vec<(&'a str, ParsedValue<'a>)>) -> SubEntry<'a> {
     let mut map = BTreeMap::new();
     for (key, value) in keys {
         match value {
@@ -100,7 +103,7 @@ fn parse_sub_entry_data<'a>(input: &'a str) -> IResult<&'a str, SubEntry<'a>> {
             _ => unreachable!(),
         }
     }
-    Ok((input, SubEntry { keys: map }))
+    SubEntry { keys: map }
 }
 
 /// Parse multiple ListInfo entries as a document.
@@ -136,23 +139,22 @@ fn parse_fragment_internal<'a, 'b>(
     for (key, value) in keys {
         match value {
             ParsedValue::Subentry(value) => {
-                if let Ok((_, subentry)) = parse_sub_entry_data(value) {
-                    if let Some(node) = map.remove(key) {
-                        match node {
-                            Node::Unique(prev) => {
-                                map.insert(
-                                    key,
-                                    Node::Many(vec![prev, EntryData::SubEntry(subentry)]),
-                                );
-                            }
-                            Node::Many(mut prevs) => {
-                                prevs.push(EntryData::SubEntry(subentry));
-                                map.insert(key, Node::Many(prevs));
-                            }
+                let subentry = parse_sub_entry_data(value);
+                if let Some(node) = map.remove(key) {
+                    match node {
+                        Node::Unique(prev) => {
+                            map.insert(
+                                key,
+                                Node::Many(vec![prev, EntryData::SubEntry(subentry)]),
+                            );
                         }
-                    } else {
-                        map.insert(key, Node::Unique(EntryData::SubEntry(subentry)));
+                        Node::Many(mut prevs) => {
+                            prevs.push(EntryData::SubEntry(subentry));
+                            map.insert(key, Node::Many(prevs));
+                        }
                     }
+                } else {
+                    map.insert(key, Node::Unique(EntryData::SubEntry(subentry)));
                 }
             }
             ParsedValue::Value(value) => {
