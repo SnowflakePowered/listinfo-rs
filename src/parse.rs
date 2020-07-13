@@ -1,4 +1,4 @@
-//! Parsing routines for MAME ListInfo DAT files
+//! Parsing routines for MAME ListInfo DAT files.
 //! 
 //! Most use cases should be covered by `parse_document`.
 //! `parse_fragment` only succeeds in parsing a single fragment.
@@ -15,7 +15,7 @@ use nom::{
     IResult,
 };
 
-use alloc::collections::BTreeMap;
+use indexmap::IndexMap;
 use alloc::vec;
 use alloc::vec::Vec;
 use core::result::Result;
@@ -81,7 +81,7 @@ fn parse_sub_entry(input: &str) -> IResult<&str, (&str, ParsedValue)> {
 }
 
 fn parse_sub_entry_data<'a>(keys: Vec<(&'a str, ParsedValue<'a>)>) -> SubEntry<'a> {
-    let mut map = BTreeMap::new();
+    let mut map = IndexMap::new();
     for (key, value) in keys {
         match value {
             ParsedValue::Value(value) => {
@@ -109,7 +109,7 @@ fn parse_sub_entry_data<'a>(keys: Vec<(&'a str, ParsedValue<'a>)>) -> SubEntry<'
 /// Parse multiple ListInfo entries as a document.
 pub fn parse_document<'a>(input: &'a str) -> Result<DatDocument<'a>, Error> {
     let (_, fragments) = complete(many1(parse_fragment_internal))(input)?;
-    let mut document: BTreeMap<&'a str, Vec<EntryFragment<'a>>> = BTreeMap::new();
+    let mut document: IndexMap<&'a str, Vec<EntryFragment<'a>>> = IndexMap::new();
     for (key, entry) in fragments {
         if let Some(existing) = document.get_mut(key) {
             existing.push(entry);
@@ -120,7 +120,7 @@ pub fn parse_document<'a>(input: &'a str) -> Result<DatDocument<'a>, Error> {
     Ok(DatDocument { document })
 }
 
-/// Parse a single ListInfo entry, returning it's key and the entry.
+/// Parse a single ListInfo entry, returning its key and the entry.
 pub fn parse_fragment<'a, 'b>(input: &'a str) -> Result<(&'a str, EntryFragment<'a>), Error> {
     let (_, fragment) = parse_fragment_internal(input)?;
     Ok(fragment)
@@ -133,7 +133,7 @@ fn parse_fragment_internal<'a, 'b>(
     let (input, entry_key) = string_key(input)?;
     let (input, _) = open_entry(input)?;
 
-    let mut map = BTreeMap::new();
+    let mut map = IndexMap::new();
 
     let (input, keys) = many0(alt((parse_sub_entry, parse_string_value)))(input)?;
     for (key, value) in keys {

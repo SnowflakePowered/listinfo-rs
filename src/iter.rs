@@ -1,21 +1,24 @@
+//! Internal iterator types for ListInfo elements.
+
 use crate::elements::Node;
 use alloc::vec::Vec;
+use indexmap::map::Iter;
 
-/// Iterator that yields slices.
+/// Iterator that yields slices and string keys.
 pub struct SliceIter<'a, T> {
-    inner_iter: alloc::collections::btree_map::Iter<'a, &'a str, Vec<T>>,
+    inner_iter: Iter<'a, &'a str, Vec<T>>,
 }
 
 impl <'a, T> SliceIter<'a, T> {
     #[doc(hidden)]
-    pub(crate) fn new(inner_iter: alloc::collections::btree_map::Iter<'a, &'a str, Vec<T>>) -> Self {
+    pub(crate) fn new(inner_iter: Iter<'a, &'a str, Vec<T>>) -> Self {
         SliceIter {
             inner_iter
         }
     }
 }
 
-impl<'a, T> Iterator for SliceIter<'a,T> {
+impl<'a, T> Iterator for SliceIter<'a, T> {
     type Item = (&'a str, &'a [T]);
     fn next(&mut self) -> Option<Self::Item> {
         if let Some((&k, v)) = self.inner_iter.next() {
@@ -27,14 +30,14 @@ impl<'a, T> Iterator for SliceIter<'a,T> {
 }
 
 
-/// Iterator for ListInfo entries that yields borrows.
+/// Iterator for ListInfo entries that yields borrows and string keys.
 pub struct EntryIter<'a, T>  {
-    inner_iter: alloc::collections::btree_map::Iter<'a, &'a str, T>,
+    inner_iter: Iter<'a, &'a str, T>,
 }
 
 impl <'a, T> EntryIter<'a, T> {
     #[doc(hidden)]
-    pub(crate) fn new(inner_iter: alloc::collections::btree_map::Iter<'a, &'a str, T>) -> Self {
+    pub(crate) fn new(inner_iter: Iter<'a, &'a str, T>) -> Self {
         EntryIter {
             inner_iter
         }

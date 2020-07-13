@@ -1,4 +1,4 @@
-//! Serde deserialization support.
+//! Serde `Deserializer` implementation.
 //!
 //! listinfo-rs supports a higher-level deserialization API with serde.
 //! This must first be enabled in Cargo.toml

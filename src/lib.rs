@@ -77,17 +77,14 @@ extern crate std as alloc;
 mod elements;
 mod error;
 
-/// Iterator types for ListInfo elements.
 pub mod iter;
 
 #[cfg(test)]
 mod tests;
 
-/// ListInfo parsing functions.
 pub mod parse;
 
 #[cfg(feature="deserialize")]
-/// Serde `Deserializer` implementation.
 pub mod de;
 
 pub use error::*;

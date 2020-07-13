@@ -1,11 +1,11 @@
-use alloc::collections::BTreeMap;
+use indexmap::IndexMap;
 use alloc::vec::Vec;
 use crate::iter::*;
 
 /// The contents of a ListInfo DAT file.
 #[derive(Debug)]
 pub struct DatDocument<'a> {
-    pub(crate) document: BTreeMap<&'a str, Vec<EntryFragment<'a>>>,
+    pub(crate) document: IndexMap<&'a str, Vec<EntryFragment<'a>>>,
 }
 
 impl<'a> DatDocument<'a> {
@@ -14,7 +14,7 @@ impl<'a> DatDocument<'a> {
         self.document.get(key).map(|f| f.iter())
     }
 
-    /// Gets an iterator over the fragments of
+    /// Gets an key value iterator over the fragments of the entry.
     pub fn iter(&'a self) -> SliceIter<'a, EntryFragment<'a>> {
         SliceIter::new(self.document.iter())
     }
@@ -33,7 +33,7 @@ impl<'a> DatDocument<'a> {
 /// ```
 #[derive(Debug, Eq, PartialEq)]
 pub struct SubEntry<'a> {
-    pub(crate) keys: BTreeMap<&'a str, Node<&'a str>>,
+    pub(crate) keys: IndexMap<&'a str, Node<&'a str>>,
 }
 
 impl<'a> SubEntry<'a> {
@@ -56,7 +56,7 @@ impl<'a> SubEntry<'a> {
         self.keys.get(key).map(|f| f.iter().map(|&s| s))
     }
 
-    /// Gets an iterator over the values of this fragment.
+    /// Gets a key value iterator over the values of this fragment.
     pub fn iter(&'a self) -> EntryIter<'a, Node<&'a str>> {
         EntryIter::new(self.keys.iter())
     }
@@ -123,12 +123,12 @@ impl<'a, T> Node<T> {
 /// ```
 #[derive(Debug)]
 pub struct EntryFragment<'a> {
-    keys: BTreeMap<&'a str, Node<EntryData<'a>>>,
+    keys: IndexMap<&'a str, Node<EntryData<'a>>>,
 }
 
 impl<'a> EntryFragment<'a> {
     #[doc(hidden)]
-    pub(crate) fn new(keys: BTreeMap<&'a str, Node<EntryData<'a>>>) -> Self {
+    pub(crate) fn new(keys: IndexMap<&'a str, Node<EntryData<'a>>>) -> Self {
         EntryFragment { keys }
     }
 
@@ -151,7 +151,7 @@ impl<'a> EntryFragment<'a> {
         self.keys.get(key).map(|f| f.iter())
     }
 
-    /// Gets an iterator over the entries of this fragment.
+    /// Gets an key value iterator over the entries of this fragment.
     pub fn iter(&'a self) -> EntryIter<'a, Node<EntryData<'a>>> {
         EntryIter::new(self.keys.iter())
     }
