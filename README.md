@@ -1,6 +1,6 @@
 # listinfo-rs
 
-[![Latest Version](https://img.shields.io/crates/v/listinfo.svg)](https://crates.io/crates/chained_iter) [![Docs](https://docs.rs/listinfo/badge.svg)](https://docs.rs/listinfo) ![License](https://img.shields.io/crates/l/listinfo)
+[![Latest Version](https://img.shields.io/crates/v/listinfo.svg)](https://crates.io/crates/listinfo) [![Docs](https://docs.rs/listinfo/badge.svg)](https://docs.rs/listinfo) ![License](https://img.shields.io/crates/l/listinfo)
 
 
 A zero-copy MAME ListInfo format DAT files parser. 
