@@ -57,7 +57,7 @@ impl<'a> SubEntry<'a> {
     }
 
     /// Gets a key value iterator over the values of this fragment.
-    pub fn iter(&'a self) -> EntryIter<'a, Node<&'a str>> {
+    pub fn iter(&'a self) -> EntryIter<'a, &'a str, Node<&'a str>> {
         EntryIter::new(self.keys.iter())
     }
 }
@@ -152,7 +152,7 @@ impl<'a> EntryFragment<'a> {
     }
 
     /// Gets an key value iterator over the entries of this fragment.
-    pub fn iter(&'a self) -> EntryIter<'a, Node<EntryData<'a>>> {
+    pub fn iter(&'a self) -> EntryIter<'a, &'a str, Node<EntryData<'a>>> {
         EntryIter::new(self.keys.iter())
     }
 }

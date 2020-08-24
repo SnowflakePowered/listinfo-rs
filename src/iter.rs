@@ -29,23 +29,24 @@ impl<'a, T> Iterator for SliceIter<'a, T> {
     }
 }
 
-
-/// Iterator for ListInfo entries that yields borrows and string keys.
-pub struct EntryIter<'a, T>  {
-    inner_iter: Iter<'a, &'a str, T>,
+/// Iterator for ListInfo entries that yields keys and borrows
+pub struct EntryIter<'a, K, V>  
+where K: 'a {
+    inner_iter: Iter<'a, K, V>,
 }
 
-impl <'a, T> EntryIter<'a, T> {
+impl <'a, K, V> EntryIter<'a, K, V> 
+where K: 'a {
     #[doc(hidden)]
-    pub(crate) fn new(inner_iter: Iter<'a, &'a str, T>) -> Self {
+    pub(crate) fn new(inner_iter: Iter<'a, K, V>) -> Self {
         EntryIter {
             inner_iter
         }
     }
 }
 
-impl<'a, T> Iterator for EntryIter<'a, T> {
-    type Item = (&'a str, &'a T);
+impl<'a, K, V> Iterator for EntryIter<'a, &'a K, V> {
+    type Item = (&'a K, &'a V);
     fn next(&mut self) -> Option<Self::Item> {
         if let Some((&k, v)) = self.inner_iter.next() {
             Some((k, v.into()))
@@ -54,7 +55,6 @@ impl<'a, T> Iterator for EntryIter<'a, T> {
         }
     }
 }
-
 
 /// Iterator for `Node` that abstracts over `Node::Unique` and `Node::Many`
 /// to access Node values.
