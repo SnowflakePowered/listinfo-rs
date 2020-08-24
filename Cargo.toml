@@ -1,12 +1,12 @@
 [package]
 name = "listinfo"
-version = "0.4.0"
+version = "0.4.1"
 authors = ["Ronny Chan <ronny@ronnychan.ca>"]
 edition = "2018"
 license = "MIT"
 keywords = ["clrmamepro", "mame", "dat", "listinfo", "parse"]
 description = "A zero-copy MAME ListInfo format DAT files parser and deserializer."
-readme = "Readme.md"
+readme = "README.md"
 categories = ["parser-implementations", "emulators", "text-processing"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

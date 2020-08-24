@@ -36,7 +36,7 @@ fn parse_cave_story() {
 listinfo-rs supports deserialization with `serde`, after enabling support in `Cargo.toml`
 
 ```toml
-listinfo = { version = "0.3", features = ["deserialize"] }
+listinfo = { version = "0.4", features = ["deserialize"] }
 ```
 
 Deserialization works like any other Serde deserializer crate.
@@ -116,5 +116,5 @@ listinfo-rs supports `no_std`, but requires `alloc`.
 You can disable `std` support in `Cargo.toml`. 
 
 ```toml
-listinfo = { version = "0.3", default-features = false }
+listinfo = { version = "0.4", default-features = false }
 ```
