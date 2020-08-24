@@ -30,13 +30,11 @@ impl<'a, T> Iterator for SliceIter<'a, T> {
 }
 
 /// Iterator for ListInfo entries that yields keys and borrows
-pub struct EntryIter<'a, K, V>  
-where K: 'a {
+pub struct EntryIter<'a, K, V> {
     inner_iter: Iter<'a, K, V>,
 }
 
-impl <'a, K, V> EntryIter<'a, K, V> 
-where K: 'a {
+impl <'a, K, V> EntryIter<'a, K, V> {
     #[doc(hidden)]
     pub(crate) fn new(inner_iter: Iter<'a, K, V>) -> Self {
         EntryIter {
@@ -46,7 +44,7 @@ where K: 'a {
 }
 
 impl<'a, K, V> Iterator for EntryIter<'a, &'a K, V> 
-where K: ?Sized + 'a {
+where K: ?Sized {
     type Item = (&'a K, &'a V);
     fn next(&mut self) -> Option<Self::Item> {
         if let Some((&k, v)) = self.inner_iter.next() {
