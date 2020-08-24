@@ -1,6 +1,6 @@
 [package]
 name = "listinfo"
-version = "0.4.1"
+version = "0.4.2"
 authors = ["Ronny Chan <ronny@ronnychan.ca>"]
 edition = "2018"
 license = "MIT"

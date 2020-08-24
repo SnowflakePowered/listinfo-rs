@@ -45,11 +45,12 @@ where K: 'a {
     }
 }
 
-impl<'a, K, V> Iterator for EntryIter<'a, &'a K, V> {
+impl<'a, K, V> Iterator for EntryIter<'a, &'a K, V> 
+where K: ?Sized + 'a {
     type Item = (&'a K, &'a V);
     fn next(&mut self) -> Option<Self::Item> {
         if let Some((&k, v)) = self.inner_iter.next() {
-            Some((k, v.into()))
+            Some((&k, v.into()))
         } else {
             None
         }

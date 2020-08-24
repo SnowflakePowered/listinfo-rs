@@ -10,12 +10,12 @@ use serde::forward_to_deserialize_any;
 type Result<T> = CoreResult<T, Error>;
 
 pub struct SubEntryDeserializer<'de> {
-    iter: EntryIter<'de, Node<&'de str>>,
+    iter: EntryIter<'de, &'de str, Node<&'de str>>,
     value: Option<&'de Node<&'de str>>,
 }
 
 impl<'de> SubEntryDeserializer<'de> {
-    pub(crate) fn new(iter: EntryIter<'de, Node<&'de str>>) -> Self {
+    pub(crate) fn new(iter: EntryIter<'de, &'de str, Node<&'de str>>) -> Self {
         SubEntryDeserializer { iter, value: None }
     }
 }
