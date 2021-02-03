@@ -1,4 +1,4 @@
-use nom::{error::ErrorKind, Err};
+use nom::Err;
 
 use alloc::borrow::ToOwned;
 use alloc::string::String;
@@ -36,12 +36,12 @@ impl serde::de::Error for Error {
     }
 }
 
-impl From<Err<(&str, ErrorKind)>> for Error {
-    fn from(err: Err<(&str, ErrorKind)>) -> Self {
+impl From<Err<nom::error::Error<&str>>> for Error {
+    fn from(err: Err<nom::error::Error<&str>>) -> Self {
         match err {
             Err::Incomplete(_) => Error::UnknownError,
-            Err::Error((_, e)) => Error::ParseError(e.description().to_owned()),
-            Err::Failure((_, e)) => Error::ParseError(e.description().to_owned()),
+            Err::Error(e) => Error::ParseError(e.code.description().to_owned()),
+            Err::Failure(e) => Error::ParseError(e.code.description().to_owned()),
         }
     }
 }
