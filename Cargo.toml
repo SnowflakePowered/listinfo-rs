@@ -1,6 +1,6 @@
 [package]
 name = "listinfo"
-version = "0.4.4"
+version = "0.4.5"
 authors = ["Ronny Chan <ronny@ronnychan.ca>"]
 edition = "2018"
 license = "MIT"
@@ -22,6 +22,9 @@ serde = { version = "1.0", default-features = false, features = ["alloc"], optio
 serde_bytes = { version = "0.11.4", optional = true}
 hex = { version = "0.4.2", default-features = false, optional = true }
 indexmap = { version = "1.4.0" }
+
+# pin funty because 1.2 smh
+funty = "=1.1.0" 
 
 [package.metadata.docs.rs]
 features = [ "test_deserialize", "std" ]
