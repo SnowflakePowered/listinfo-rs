@@ -1,6 +1,6 @@
 [package]
 name = "listinfo"
-version = "0.4.6"
+version = "0.4.7"
 authors = ["Ronny Chan <ronny@ronnychan.ca>"]
 edition = "2018"
 license = "MIT"
@@ -8,6 +8,7 @@ keywords = ["clrmamepro", "mame", "dat", "listinfo", "parse"]
 description = "A zero-copy MAME ListInfo format DAT files parser and deserializer."
 readme = "README.md"
 categories = ["parser-implementations", "emulators", "text-processing"]
+repository = "https://github.com/SnowflakePowered/listinfo-rs"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
