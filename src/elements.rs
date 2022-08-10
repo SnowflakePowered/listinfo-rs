@@ -1,6 +1,6 @@
-use indexmap::IndexMap;
-use alloc::vec::Vec;
 use crate::iter::*;
+use alloc::vec::Vec;
+use indexmap::IndexMap;
 
 /// The contents of a ListInfo DAT file.
 #[derive(Debug)]
@@ -24,7 +24,7 @@ impl<'a> DatDocument<'a> {
 ///
 /// Sub-entries can not contain their own sub-entries and can only contain scalars or lists of scalars.
 /// For example, the `rom` entries in the following fragment are sub-entries.
-/// 
+///
 /// ```listinfo
 /// game (
 ///  rom (name "Rom 1")
@@ -46,14 +46,14 @@ impl<'a> SubEntry<'a> {
     ///
     /// This is shorthand for `subentry.value("key").map(|f| f.unique().as_ref())`
     pub fn value_unique(&'a self, key: &str) -> Option<&'a str> {
-        self.keys.get(key).map(|f| f.unique().as_ref())
+        self.keys.get(key).map(|f| *f.unique())
     }
 
     /// Gets the values with the given key if it exists.
     ///
     /// This is shorthand for `fragment.value("key").map(|f| f.iter().map(|&s| s))`
     pub fn value_iter(&'a self, key: &str) -> Option<impl Iterator<Item = &'a str>> {
-        self.keys.get(key).map(|f| f.iter().map(|&s| s))
+        self.keys.get(key).map(|f| f.iter().copied())
     }
 
     /// Gets a key value iterator over the values of this fragment.
@@ -74,7 +74,7 @@ pub enum EntryData<'a> {
 /// Represents nodes with the given key in an ListInfo entry.
 ///
 /// The split between `Unique` and `Many` is mostly for performance reasons
-/// to avoid unnecessary allocations. `Node::Unique` appeared exactly once in 
+/// to avoid unnecessary allocations. `Node::Unique` appeared exactly once in
 /// the parsed DAT file, while `Node::Unique` appeared more than once.
 ///
 /// Instead of accessing the enum members directly, the `Node::iter` and `Node::unique`

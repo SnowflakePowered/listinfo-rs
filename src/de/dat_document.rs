@@ -84,9 +84,7 @@ impl<'de> SeqAccess<'de> for FragmentSliceDeserializer<'de> {
         T: DeserializeSeed<'de>,
     {
         match self.iter.next() {
-            Some(fragment) => seed
-                .deserialize(fragment.into_deserializer())
-                .map(Some),
+            Some(fragment) => seed.deserialize(fragment.into_deserializer()).map(Some),
             None => Ok(None),
         }
     }

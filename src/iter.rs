@@ -9,12 +9,10 @@ pub struct SliceIter<'a, T> {
     inner_iter: Iter<'a, &'a str, Vec<T>>,
 }
 
-impl <'a, T> SliceIter<'a, T> {
+impl<'a, T> SliceIter<'a, T> {
     #[doc(hidden)]
     pub(crate) fn new(inner_iter: Iter<'a, &'a str, Vec<T>>) -> Self {
-        SliceIter {
-            inner_iter
-        }
+        SliceIter { inner_iter }
     }
 }
 
@@ -34,21 +32,21 @@ pub struct EntryIter<'a, K, V> {
     inner_iter: Iter<'a, K, V>,
 }
 
-impl <'a, K, V> EntryIter<'a, K, V> {
+impl<'a, K, V> EntryIter<'a, K, V> {
     #[doc(hidden)]
     pub(crate) fn new(inner_iter: Iter<'a, K, V>) -> Self {
-        EntryIter {
-            inner_iter
-        }
+        EntryIter { inner_iter }
     }
 }
 
-impl<'a, K, V> Iterator for EntryIter<'a, &'a K, V> 
-where K: ?Sized {
+impl<'a, K, V> Iterator for EntryIter<'a, &'a K, V>
+where
+    K: ?Sized,
+{
     type Item = (&'a K, &'a V);
     fn next(&mut self) -> Option<Self::Item> {
         if let Some((&k, v)) = self.inner_iter.next() {
-            Some((&k, v.into()))
+            Some((k, v))
         } else {
             None
         }
@@ -63,13 +61,13 @@ pub struct NodeIter<'a, T> {
     multi_idx: usize,
 }
 
-impl <'a, T> NodeIter<'a, T> {
+impl<'a, T> NodeIter<'a, T> {
     #[doc(hidden)]
     pub(crate) fn new(node: &'a Node<T>) -> Self {
         NodeIter {
             node,
             dead: false,
-            multi_idx: 0
+            multi_idx: 0,
         }
     }
 }
@@ -84,7 +82,7 @@ impl<'a, T> Iterator for NodeIter<'a, T> {
         match self.node {
             Node::Unique(entry) => {
                 self.dead = true;
-                return Some(entry);
+                Some(entry)
             }
             Node::Many(vec) => {
                 let get = vec.get(self.multi_idx);

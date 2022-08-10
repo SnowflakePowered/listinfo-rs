@@ -1,5 +1,5 @@
 //! Parsing routines for MAME ListInfo DAT files.
-//! 
+//!
 //! Most use cases should be covered by `parse_document`.
 //! `parse_fragment` only succeeds in parsing a single fragment.
 //!
@@ -15,10 +15,10 @@ use nom::{
     IResult,
 };
 
-use indexmap::IndexMap;
 use alloc::vec;
 use alloc::vec::Vec;
 use core::result::Result;
+use indexmap::IndexMap;
 
 use crate::elements::*;
 use crate::error::Error;
@@ -121,14 +121,14 @@ pub fn parse_document<'a>(input: &'a str) -> Result<DatDocument<'a>, Error> {
 }
 
 /// Parse a single ListInfo entry, returning its key and the entry.
-pub fn parse_fragment<'a, 'b>(input: &'a str) -> Result<(&'a str, EntryFragment<'a>), Error> {
+pub fn parse_fragment(input: &str) -> Result<(&str, EntryFragment), Error> {
     let (_, fragment) = parse_fragment_internal(input)?;
     Ok(fragment)
 }
 
-fn parse_fragment_internal<'a, 'b>(
-    input: &'a str,
-) -> IResult<&'a str, (&'a str, EntryFragment<'a>)> {
+fn parse_fragment_internal(
+    input: &str,
+) -> IResult<&str, (&str, EntryFragment)> {
     let (input, _) = multispace0(input)?;
     let (input, entry_key) = string_key(input)?;
     let (input, _) = open_entry(input)?;
@@ -143,10 +143,7 @@ fn parse_fragment_internal<'a, 'b>(
                 if let Some(node) = map.remove(key) {
                     match node {
                         Node::Unique(prev) => {
-                            map.insert(
-                                key,
-                                Node::Many(vec![prev, EntryData::SubEntry(subentry)]),
-                            );
+                            map.insert(key, Node::Many(vec![prev, EntryData::SubEntry(subentry)]));
                         }
                         Node::Many(mut prevs) => {
                             prevs.push(EntryData::SubEntry(subentry));

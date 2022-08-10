@@ -12,7 +12,7 @@ type Result<T> = CoreResult<T, Error>;
 /// A deserializer for a ListInfo DAT fragment.
 pub struct EntryFragmentDeserializer<'de> {
     iter: EntryIter<'de, &'de str, Node<EntryData<'de>>>,
-    value: Option<&'de Node<EntryData<'de>>>
+    value: Option<&'de Node<EntryData<'de>>>,
 }
 
 impl<'de> EntryFragmentDeserializer<'de> {

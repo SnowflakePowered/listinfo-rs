@@ -1,6 +1,6 @@
 [package]
 name = "listinfo"
-version = "0.4.7"
+version = "0.4.8"
 authors = ["Ronny Chan <ronny@ronnychan.ca>"]
 edition = "2018"
 license = "MIT"
@@ -18,14 +18,11 @@ deserialize = ["serde", "hex"]
 test_deserialize = ["deserialize", "serde/derive", "serde_bytes"]
 
 [dependencies]
-nom = { version = "6", default-features = false, features = ["alloc"] }
+nom = { version = "7", default-features = false, features = ["alloc"] }
 serde = { version = "1.0", default-features = false, features = ["alloc"], optional = true }
-serde_bytes = { version = "=0.11.4", optional = true}
+serde_bytes = { version = "0.11", optional = true }
 hex = { version = "0.4.3", default-features = false, features = ["alloc"], optional = true }
 indexmap = { version = "1.4.0" }
-
-# pin funty because 1.2 smh
-funty = "=1.1.0" 
 
 [package.metadata.docs.rs]
 features = [ "test_deserialize", "std" ]

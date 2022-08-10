@@ -1,7 +1,7 @@
 use crate::elements::*;
 use crate::parse;
 
-#[cfg(not(feature="std"))]
+#[cfg(not(feature = "std"))]
 use alloc::string::String;
 
 #[test]
@@ -300,5 +300,4 @@ fn parse_inner_braces() {
     } else {
         panic!()
     }
-    
 }

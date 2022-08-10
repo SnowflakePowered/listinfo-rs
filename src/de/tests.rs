@@ -62,7 +62,16 @@ fn deserialize_cave_story() {
 
     let cave_story = super::from_str::<CaveStory>(CAVE_STORY).unwrap();
     assert_eq!(cave_story.clrmamepro.name, "Cave Story");
-    assert_eq!(cave_story.game.first().unwrap().rom.first().unwrap().name, "Doukutsu.exe");
-    assert_eq!(cave_story.game.first().unwrap().rom.first().unwrap().size, 1478656);
-    assert_eq!(cave_story.game.first().unwrap().rom.first().unwrap().crc, &[0xc5, 0xa2, 0xa3, 0xf6]);
+    assert_eq!(
+        cave_story.game.first().unwrap().rom.first().unwrap().name,
+        "Doukutsu.exe"
+    );
+    assert_eq!(
+        cave_story.game.first().unwrap().rom.first().unwrap().size,
+        1478656
+    );
+    assert_eq!(
+        cave_story.game.first().unwrap().rom.first().unwrap().crc,
+        &[0xc5, 0xa2, 0xa3, 0xf6]
+    );
 }

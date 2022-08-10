@@ -1,10 +1,10 @@
 //! A zero-copy MAME ListInfo format DAT files parser and deserializer.
 //!
 //! ## Usage
-//! listinfo-rs provides a lower-level zero-copy expression tree API 
-//! as well as a more user friendly Serde deserialization API. 
+//! listinfo-rs provides a lower-level zero-copy expression tree API
+//! as well as a more user friendly Serde deserialization API.
 //!
-//! Illustrated here is an example with the expression tree API 
+//! Illustrated here is an example with the expression tree API
 //!
 //! ```rust
 //! #[test]
@@ -20,11 +20,11 @@
 //!                 description "Cave Story (En)"
 //!                 developer "Studio Pixel"
 //!                 releaseyear "2004"
-//!                 rom ( 
+//!                 rom (
 //!                     name "Doukutsu.exe"
-//!                     size 1478656 
-//!                     crc c5a2a3f6 
-//!                     md5 38695d3d69d7a0ada8178072dad4c58b 
+//!                     size 1478656
+//!                     crc c5a2a3f6
+//!                     md5 38695d3d69d7a0ada8178072dad4c58b
 //!                     sha1 bb2d0441e073da9c584f23c2ad8c7ab8aac293bf
 //!                 )
 //!             )
@@ -51,7 +51,7 @@
 //!     }
 //! }
 //! ```
-//! 
+//!
 //! ## Features
 //! listinfo-rs supports the following features
 //!  * `std` Enables `std` support (enabled by default)
@@ -60,7 +60,7 @@
 //! ## `no_std`
 //! listinfo-rs requires `alloc`, but otherwise is fully supported on `#![no_std]`
 //! environments.
-//! 
+//!
 //! You can enable `no_std` support like in Cargo.toml
 //!
 //! ```toml
@@ -84,8 +84,8 @@ mod tests;
 
 pub mod parse;
 
-#[cfg(feature="deserialize")]
+#[cfg(feature = "deserialize")]
 pub mod de;
 
-pub use error::*;
 pub use elements::*;
+pub use error::*;

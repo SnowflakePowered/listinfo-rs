@@ -1,11 +1,11 @@
 use crate::elements::*;
 use crate::iter::*;
 
-mod str;
 mod entry_data;
+mod str;
 
-pub use self::str::*;
 pub use self::entry_data::*;
+pub use self::str::*;
 
 pub struct NodeDeserializer<'a, T> {
     iter: NodeIter<'a, T>,
